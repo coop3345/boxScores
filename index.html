@@ -140,13 +140,13 @@
     //console.log(data1);
     
     var margin = {right: 50, left: 50},
-        width = 1000 - margin.left - margin.right,
+        width = 700 - margin.left - margin.right,
         height = 30,
         sx = 5,
         sy = 9.5,
         gameFiltered,
         secondSelection,
-        weekSelection,
+        weekSelection = 'Week',
         gameSelection = 'Games',
         games = ['Games'],
         gameIDs = [],
@@ -265,20 +265,48 @@
         .attr("rx", 13)
         .attr("ry", 8);
     
+    var lace1 = slider.insert('line', ".track-toverlay")
+        .attr("y1", -2)
+        .attr("y2", 2)
+        .attr("stroke-width", 1)
+        .attr("stroke", "white");
+
+    var lace2 = slider.insert('line', ".track-toverlay")
+        .attr("y1", -2)
+        .attr("y2", 2)
+        .attr("stroke-width", 1)
+        .attr("stroke", "white");
+
+    var lace3 = slider.insert('line', ".track-toverlay")
+        .attr("y1", -2)
+        .attr("y2", 2)
+        .attr("stroke-width", 1)
+        .attr("stroke", "white");
+
+    var lace4 = slider.insert('line', ".track-toverlay")
+        .attr("y1", -2)
+        .attr("y2", 2)
+        .attr("stroke-width", 1)
+        .attr("stroke", "white");
+    
+    var lace5 = slider.insert('line', ".track-toverlay")
+        .attr("y1", -2)
+        .attr("y2", 2)
+        .attr("stroke-width", 1)
+        .attr("stroke", "white");
+
+    var laceC = slider.insert('line', ".track-toverlay")
+        .attr("y1", 0)
+        .attr("y2", 0)
+        .attr("stroke-width", 1)
+        .attr("stroke", "white");
+
     slider.transition() // Gratuitous intro!
         .duration(750)
         .tween("clock", function() {
           var i = d3.interpolate(0, 0);
           return function(t) { clock(i(t)); };
         });
-
-    // box = svg.append("rect")
-    //   .attr("width", 65)
-    //   .attr("height", 18)
-    //   .attr("fill", "white")
-    //   .attr("stroke", "white")
-    //   .attr('x', sx)
-    //   .attr('y', 0);
 
     myText = svg.append("text")
       .attr('x', sx + 1)
@@ -289,6 +317,13 @@
 
     function clock(h) {
       handle.attr("cx", x(h)).text(function(h) { return h; });
+      lace1.attr("x1", x(h) - 6).attr("x2", x(h) - 6);
+      lace2.attr("x1", x(h) - 3).attr("x2", x(h) - 3);
+      lace3.attr("x1", x(h)).attr("x2", x(h));
+      lace4.attr("x1", x(h) + 3).attr("x2", x(h) + 3);
+      lace5.attr("x1", x(h) + 6).attr("x2", x(h) + 6);
+      laceC.attr("x1", x(h) - 6).attr("x2", x(h) + 6);
+
       secondSelection = h;
       myText.text(secsToClock(formatInt(secondSelection))); 
     }
@@ -334,8 +369,10 @@
       refreshObj();
     }
     
-  // refresh all filters for vizDisplays
+  // refresh all data for displayed objects
     function refreshObj(){
+      refreshScore();
+
       d3.select('body').selectAll('table').remove();
       d3.select('body').selectAll('p').remove();
 
@@ -343,6 +380,36 @@
       refreshRush();
       refreshRec();
     }
+
+  // Score
+  function refreshScore() {
+    // delete score object
+
+    //Create score object
+    var h, a, sA, sH; // homeTeam, awayTeam, scoreAway, scoreHome
+
+    if (gameSelection != 'Games'){
+      for (var i = gameFiltered.length - 1; i--; i >= 0) {
+        h = gameFiltered[i].HomeTeam;
+        a = gameFiltered[i].AwayTeam;
+
+        if (gameFiltered[i].posteam == h || gameFiltered[i].DefensiveTeam == a) {
+          sH = gameFiltered[i].PosTeamScore;
+          sA = gameFiltered[i].DefTeamScore;
+        } else if (gameFiltered[i].posteam == a || gameFiltered[i].DefensiveTeam == h) {
+          sA = gameFiltered[i].PosTeamScore;
+          sH = gameFiltered[i].DefTeamScore;
+        }
+
+        if ( sA > -1 && sH > -1) { break; }
+     }
+    }
+    // console.log(gameFiltered);
+    console.log(h + ": " + sH + ' || ' + a + ": " + sA);
+  }
+  // Win Probability
+
+  // Team Comparisons
 
   // Tables
     var passTbl, rushTbl, recTbl, kickTbl;
