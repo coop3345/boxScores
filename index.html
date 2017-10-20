@@ -2,7 +2,7 @@
 <meta charset="utf-8">
 <style>
   table { 
-		width: 100%; 
+		/* width: 100%;  */
 		border-collapse: collapse; 
 	}
 	/* Zebra striping */
@@ -151,7 +151,8 @@
         games = ['Games'],
         gameIDs = [],
         formatInt = d3.format(".0f"),
-        formatDec = d3.format(".2f");
+        formatDec = d3.format(".2f"),
+        sortAscending = true;
 
   //Dropdowns
     var gameSelect = d3.select("#game")
@@ -221,7 +222,7 @@
         .append("svg")
         .attr("width", width)
         .attr("height", height)
-        .attr("transform", "translate(" + 200  + "," + -19 + ")");
+        .attr("transform", "translate(" + 170  + "," + -19 + ")");
 
     var x = d3.scaleLinear()
         .domain([3600, -900])
@@ -263,7 +264,7 @@
         .attr("class", "handle")
         .attr("rx", 13)
         .attr("ry", 8);
-
+    
     slider.transition() // Gratuitous intro!
         .duration(750)
         .tween("clock", function() {
@@ -415,12 +416,12 @@
             rushYards = rushYards + parseInt(rushers[index].values[index1].YardsGained);
             rushTD = rushTD + parseInt(rushers[index].values[index1].Touchdown);
             fumbles = fumbles + parseInt(rushers[index].values[index1].Fumble);
-            if (rushers[index].values[index1].RecFumbTeam !== rushers[index].values[index1].posteam) { fumblesLost = fumblesLost++; }
+            if (rushers[index].values[index1].Fumble == "1" && rushers[index].values[index1].RecFumbTeam != rushers[index].values[index1].posteam) { fumblesLost++; }
             if (rushers[index].values[index1].YardsGained > long) { long = rushers[index].values[index1].YardsGained; }
           }
           if (rushers[index].values[index1].PlayType == 'Sack') {
             fumbles = fumbles + parseInt(rushers[index].values[index1].Fumble);
-            if (rushers[index].values[index1].RecFumbTeam !== rushers[index].values[index1].posteam) { fumblesLost = fumblesLost++; }
+            if (rushers[index].values[index1].Fumble == "1" && rushers[index].values[index1].RecFumbTeam != rushers[index].values[index1].posteam) { fumblesLost++; }
           }
         }
         if (attempts > 0){
@@ -500,19 +501,27 @@
 
     var tabulate = function (data,columns) {
       var table = d3.select('body').append('table')
-      var thead = table.append('thead')
-      var tbody = table.append('tbody')
 
-      thead.append('tr')
+      var headers = table.append('thead').append('tr')
         .selectAll('th')
-          .data(columns)
-          .enter()
+          .data(columns).enter()
         .append('th')
           .text(function (d) { return d })
-          // .on('click', function (d) {
-          //   thead.attr('class', 'header');
+        .on('click', function (d) {
+          headers.attr('class', 'header');
+            
+            if (sortAscending) {
+              rows.sort(function(a, b) { return b[d] < a[d]; });
+              sortAscending = false;
+              this.className = 'aes';
+            } else {
+            rows.sort(function(a, b) { return b[d] > a[d]; });
+            sortAscending = true;
+            this.className = 'des';
+            }
+          });
 
-      var rows = tbody.selectAll('tr')
+      var rows = table.append('tbody').selectAll('tr')
           .data(data)
           .enter()
         .append('tr')
@@ -525,8 +534,14 @@
           })
           .enter()
         .append('td')
-          .text(function (d) { return d.value })
-
+          // .text(function (d) { return d.value })
+        .attr('data-th', function (d) {
+		    	return d.name;
+		    })
+		    .text(function (d) {
+		    	return d.value;
+		    });
+        
       return table;
     }
 
