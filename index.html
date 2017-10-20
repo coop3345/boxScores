@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+  table { 
+		width: 100%; 
+		border-collapse: collapse; 
+	}
+	/* Zebra striping */
+	tr:nth-of-type(odd) { 
+		background: #eee; 
+	}
+	th { 
+		background: #333; 
+		color: white; 
+		font-weight: bold; 
+		cursor: s-resize;
+		background-repeat: no-repeat;
+        background-position: 3% center;
+	}
+	td, th { 
+		padding: 6px; 
+		border: 1px solid #ccc; 
+		text-align: left; 
+	}
+	
+	th.des:after {
+      content: "\21E9";
+    }
+    
+    th.aes:after {
+      content: "\21E7";
+    }
+
+.ticks {
+  font: 10px sans-serif;
+}
+
+.track,
+.track-inset,
+.track-overlay {
+  stroke-linecap: round;
+}
+
+.track {
+  stroke: #000;
+  stroke-opacity: 0.3;
+  stroke-width: 10px;
+}
+
+.track-inset {
+  stroke: #ddd;
+  stroke-width: 8px;
+}
+
+.track-overlay {
+  pointer-events: stroke;
+  stroke-width: 50px;
+  stroke: transparent;
+  cursor: crosshair;
+}
+
+.handle {
+  fill: rgba(126, 79, 8, 0.87);
+  stroke: #000;
+  stroke-opacity: 0.5;
+  stroke-width: 1.25px;
+}
+</style>
+<body>
+  <select id="week"></select>
+  <select id="game"></select>
+  <div id="svg"></div>
+  <!--svg width="1340" height="250"></svg -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script>
+  // Get all the data. Start working with filters
+  d3.csv("pbp16.csv", function(error, data1){
+    data1.forEach(function(d){
+      // GameID = +d.GameID;
+      // Drive = +d.Drive;
+      // qtr = +d.qtr;
+      // down = +d.down;
+      // clock = +d.clock;
+      // TimeSecs = +d.TimeSecs;
+      // yrdln = +d.yrdln;
+      // yrdline100 = +d.yrdline100;
+      // ydstogo = +d.ydstogo;
+      // ydsnet = +d.ydsnet;
+      // GoalToGo = +d.GoalToGo;
+      // FirstDown = +d.FirstDown;
+      // posteam = +d.posteam;
+      // DefensiveTeam = +d.DefensiveTeam;
+      // playdesc = +d.playdesc;
+      // PlayAttempted = +d.PlayAttempted;
+      // YardsGained = +d.YardsGained;
+      // Touchdown = +d.Touchdown;
+      // PlayType = +d.PlayType;
+      // Passer = +d.Passer;
+      // Passer_ID = +d.Passer_ID;
+      // PassAttempt = +d.PassAttempt;
+      // PassOutcome = +d.PassOutcome;
+      // PassLength = +d.PassLength;
+      // AirYards = +d.AirYards;
+      // YardsAfterCatch = +d.YardsAfterCatch;
+      // QBHit = +d.QBHit;
+      // PassLocation = +d.PassLocation;
+      // InterceptionThrown = +d.InterceptionThrown;
+      // Rusher = +d.Rusher;
+      // Rusher_ID = +d.Rusher_ID;
+      // RushAttempt = +d.RushAttempt;
+      // RunLocation = +d.RunLocation;
+      // RunGap = +d.RunGap;
+      // Receiver = +d.Receiver;
+      // Receiver_ID = +d.Receiver_ID;
+      // Reception = +d.Reception;
+      // ReturnResult = +d.ReturnResult;
+      // Returner = +d.Returner;
+      // FieldGoalResult = +d.FieldGoalResult;
+      // FieldGoalDistance = +d.FieldGoalDistance;
+      // Fumble = +d.Fumble;
+      // RecFumbTeam = +d.RecFumbTeam;
+      // RecFumbPlayer = +d.RecFumbPlayer;
+      // Sack = +d.Sack;
+      // ChallengeReplay = +d.ChallengeReplay;
+      // ChalReplayResult = +d.ChalReplayResult;
+      // AcceptedPenalty = +d.AcceptedPenalty;
+      // PenalizedTeam = +d.PenalizedTeam;
+      // PenaltyType = +d.PenaltyType;
+      // PenalizedPlayer = +d.PenalizedPlayer;
+      // PenaltyYards = +d.PenaltyYards;
+      // HomeTeam = +d.HomeTeam;
+      // AwayTeam = +d.AwayTeam;
+      // Home_WP_post = +d.Home_WP_post;
+      // Away_WP_post = +d.Away_WP_post;
+      // Season = +d.Season;
+      // Kicker = +d.Kicker;
+      // Kicker_ID = +d.Kicker_ID;
+      // WeekNumber = +d.WeekNumber;
+    });
+    //console.log(data1);
+    
+    var margin = {right: 50, left: 50},
+        width = 1000 - margin.left - margin.right,
+        height = 30,
+        sx = 5,
+        sy = 9.5,
+        gameFiltered,
+        secondSelection,
+        weekSelection,
+        gameSelection = 'Games',
+        games = ['Games'],
+        gameIDs = [],
+        formatInt = d3.format(".0f"),
+        formatDec = d3.format(".2f");
+
+  //Dropdowns
+    var gameSelect = d3.select("#game")
+          .on('change', gameChange)
+
+    var gameOptions = gameSelect
+        .selectAll('option')
+        .data(games).enter()
+        .append('option')
+          .text(function (d) { return d; });
+      
+    function gameChange() {
+      gameSelection = d3.select('#game').property('value')
+      
+      for (var i = 0; i < gameIDs.length; i++) {
+        if (gameIDs[i].indexOf(gameSelection) === 0){
+          gameSelection = gameIDs[i];
+          break;
+        }
+      }
+      gameFilter();
+    };
+
+    var weekSelect = d3.select("#week")
+          .on('change',weekChange)
+    
+    var weekOptions = weekSelect
+        .selectAll('option')
+        .data(['Week',1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]).enter()
+        .append('option')
+          .text(function (d) { return d; });
+
+    function weekChange() {
+      weekSelection = d3.select('#week').property('value')
+
+      gameSelection = 'Games';
+      gameFilter();
+
+      var index,
+          kickoffs = gameFiltered.filter(function(d){
+            return d.PlayType == "Kickoff" && d.TimeSecs == "3600";
+          });
+
+      games = ['Games']; gameIDs = ['Games'];
+
+      for (index = 0; index < kickoffs.length; ++index){
+        var a = kickoffs[index].AwayTeam, h = kickoffs[index].HomeTeam, dt = kickoffs[index].DateofGame;
+        
+        var g = a + ' @ ' + h;
+        if (!(games.indexOf(g) > 0)){
+          games.push(g);
+          gameIDs.push(g + ' ' + dt);
+        }
+      }
+      d3.select('#game').selectAll('option').remove();
+
+      gameOptions = gameSelect
+        .selectAll('option')
+        .data(games).enter()
+        .append('option')
+          .text(function (d) { return d; });
+    };
+    
+
+  // Slider
+    var svg = d3.select("#svg")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("transform", "translate(" + 200  + "," + -19 + ")");
+
+    var x = d3.scaleLinear()
+        .domain([3600, -900])
+        .range([0, width - 100])
+        .clamp(true);
+
+    var slider = svg
+      .append("g")
+        .attr("class", "slider")
+        .attr("transform", "translate(" + 85  + "," + sy + ")");
+
+    slider.append("line")
+        .attr("class", "track")
+        .attr("x1", x.range()[0])
+        .attr("x2", x.range()[1])
+      .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+        .attr("class", "track-inset")
+      .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+        .attr("class", "track-overlay")
+        .call(d3.drag()
+            .on("start.interrupt", function() { slider.interrupt(); })
+            .on("start drag", function() { clock(x.invert(d3.event.x)); })
+            .on("end", function() {gameFilter();})
+          );
+
+    slider.insert("g", ".track-overlay")
+        .attr("class", "ticks")
+        .attr("transform", "translate(0," + 20 + ")")
+      .selectAll("text")
+        .data(x.ticks(4))
+      .enter().append("text")
+        .attr("x", x)
+        .attr("text-anchor", "middle")
+        .text(function(d) { var c = secsToClock(d);
+          return c;
+        });
+
+    var handle = slider.insert("ellipse", ".track-overlay")
+        .attr("class", "handle")
+        .attr("rx", 13)
+        .attr("ry", 8);
+
+    slider.transition() // Gratuitous intro!
+        .duration(750)
+        .tween("clock", function() {
+          var i = d3.interpolate(0, 0);
+          return function(t) { clock(i(t)); };
+        });
+
+    // box = svg.append("rect")
+    //   .attr("width", 65)
+    //   .attr("height", 18)
+    //   .attr("fill", "white")
+    //   .attr("stroke", "white")
+    //   .attr('x', sx)
+    //   .attr('y', 0);
+
+    myText = svg.append("text")
+      .attr('x', sx + 1)
+      .attr("y", 14);
+      // .attr("fill", "white")
+      // .attr("stroke", "white");
+    
+
+    function clock(h) {
+      handle.attr("cx", x(h)).text(function(h) { return h; });
+      secondSelection = h;
+      myText.text(secsToClock(formatInt(secondSelection))); 
+    }
+
+    function secsToClock(sr){
+      var q, m, s;
+
+      if (sr > 2700) {
+        q = 'Q1 ';
+      } else if (sr > 1800) {
+        q = 'Q2 ';
+      } else if (sr > 900) {
+        q = 'Q3 ';
+      } else if (sr >= 0) {
+        q = 'Q4 ';
+      } else { q = 'OT '; sr = 900 + parseInt(sr); }
+
+      if (sr % 900 == 0) {
+          if (sr <= 0) {
+            m = '00';
+            s = '00';
+          } else {
+            m = '15';
+            s = '00';
+          }
+      } else {
+        m = Math.floor(sr % 900 / 60);
+        s = (sr % 900) % 60;
+      }
+      if (s.toString().length == 1) { s = '0' + s; }
+
+      return q + m + ':' + s; 
+    }
+
+  // Filter
+    function gameFilter(){
+      gameFiltered = data1.filter(function(d){
+        if( (d["GameID"] == gameSelection || gameSelection === "Games") && (d["WeekNumber"] == weekSelection || weekSelection === 'Week') && d["TimeSecs"] >= secondSelection ){
+          return d;
+        }
+      })
+      // console.log(gameFiltered);
+      refreshObj();
+    }
+    
+  // refresh all filters for vizDisplays
+    function refreshObj(){
+      d3.select('body').selectAll('table').remove();
+      d3.select('body').selectAll('p').remove();
+
+      refreshPass();
+      refreshRush();
+      refreshRec();
+    }
+
+  // Tables
+    var passTbl, rushTbl, recTbl, kickTbl;
+
+    function refreshPass(){
+      passTbl = [];
+      passers = d3.nest()
+          .key(function(d) { return d.Passer })
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Pass" || d.PlayType == "Sack") }));
+
+      var index, index1, team, attempts, completions, passYards, passTD, interceptions, sacks, sackYards, qbHits;
+
+      for (index = 0; index < passers.length; ++index){
+        // console.log(passers[index].key);
+        // console.log(passers[index].values[0]);
+        team = 0; attempts = 0; completions = 0; passYards = 0; passTD = 0; interceptions = 0; sacks = 0; sackYards = 0; qbHits = 0;
+        for (index1 = 0; index1 < passers[index].values.length; ++index1){
+          //console.log(passers[index].values[index1].YardsGained);
+          if (index1 == 0) { team = passers[index].values[index1].posteam; }
+          if (passers[index].values[index1].PlayType == 'Pass') {
+            attempts++;
+            completions = completions + parseInt(passers[index].values[index1].Reception);
+            passYards = passYards + parseInt(passers[index].values[index1].YardsGained);
+            passTD = passTD + parseInt(passers[index].values[index1].Touchdown);
+            interceptions = interceptions + parseInt(passers[index].values[index1].InterceptionThrown);
+          }
+          if (passers[index].values[index1].PlayType == 'Sack') {
+            sacks = sacks + parseInt(passers[index].values[index1].Sack);
+            sackYards = sackYards + (parseInt(passers[index].values[index1].YardsGained));
+          }
+          qbHits = qbHits + parseInt(passers[index].values[index1].QBHit);
+        }
+
+        // Add entry to passTbl
+        passTbl.push({
+          "Player Name": passers[index].key, // Passer
+          "Team": team,
+          // any variables summed in nested loop
+          "Complete": completions,
+          "Attempts": attempts,
+          "Pass Yards": passYards,
+          "Pass TD": passTD,
+          "INT": interceptions,
+          "QB Hit": qbHits,
+          "Sacked": sacks,
+          "Sack Yards": sackYards
+        });
+      }
+      objSort(passTbl, 'Team', ['Attempts', true]);
+      if (passTbl.length > 0){
+        tabulate(passTbl, ['Player Name', 'Team', 'Complete', 'Attempts', 'Pass Yards', 'Pass TD', 'INT', 'QB Hit', 'Sacked', 'Sack Yards']);
+        d3.select('body').append('p');
+      }
+      // console.log(passTbl);
+    }
+
+    function refreshRush(){
+      rushTbl = [];
+      rushers = d3.nest()
+          .key(function(d) { return d.Rusher })
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Run" || d.PlayType == "Sack") && d.Rusher !== "NA" }));
+
+      var index, index1, team, attempts, rushYards, ypc, rushTD, fumbles, fumblesLost, long;
+
+      for (index = 0; index < rushers.length; ++index){
+        team = 0; attempts = 0; rushYards = 0; ypc = 0; rushTD = 0;  fumbles = 0; fumblesLost = 0; long = 0;
+        for (index1 = 0; index1 < rushers[index].values.length; ++index1){
+          if (index1 == 0) { team = rushers[index].values[index1].posteam; }
+          if (rushers[index].values[index1].PlayType == 'Run') {
+            attempts++;
+            rushYards = rushYards + parseInt(rushers[index].values[index1].YardsGained);
+            rushTD = rushTD + parseInt(rushers[index].values[index1].Touchdown);
+            fumbles = fumbles + parseInt(rushers[index].values[index1].Fumble);
+            if (rushers[index].values[index1].RecFumbTeam !== rushers[index].values[index1].posteam) { fumblesLost = fumblesLost++; }
+            if (rushers[index].values[index1].YardsGained > long) { long = rushers[index].values[index1].YardsGained; }
+          }
+          if (rushers[index].values[index1].PlayType == 'Sack') {
+            fumbles = fumbles + parseInt(rushers[index].values[index1].Fumble);
+            if (rushers[index].values[index1].RecFumbTeam !== rushers[index].values[index1].posteam) { fumblesLost = fumblesLost++; }
+          }
+        }
+        if (attempts > 0){
+          ypc = formatDec(rushYards * 1.00 / attempts);
+        } else { ypc = '-'; }
+        
+
+        // Add entry to passTbl
+        rushTbl.push({
+          "Player Name": rushers[index].key, // Passer
+          "Team": team,
+          // any variables summed in nested loop
+          "Attempts": attempts,
+          "Rush Yards": rushYards,
+          "Yards Per Carry": ypc,
+          "Rush TD": rushTD,
+          "Fumbles": fumbles,
+          "Fumbles Lost": fumblesLost,
+          "Long": long
+        });
+      }
+      objSort(rushTbl, 'Team', ['Attempts', true]);
+      if (rushTbl.length > 0 ) {
+        // d3.select('body').append('p').text('Rushing')
+        tabulate(rushTbl, ['Player Name', 'Team', 'Attempts', 'Rush Yards', 'Yards Per Carry', 'Rush TD', 'Long', 'Fumbles', 'Fumbles Lost']);
+        d3.select('body').append('p');
+      }
+    }
+
+    function refreshRec(){
+      recTbl = [];
+      receivers = d3.nest()
+          .key(function(d) { return d.Receiver })
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Pass") && d.Receiver !== "NA" }));
+
+      var index, index1, team, targets, receptions, recYards, ypc, recTD, long, yac;
+
+      for (index = 0; index < receivers.length; ++index){
+        // console.log(receivers[index].key);
+        // console.log(receivers[index].values[0]);
+        team = 0; targets = 0; receptions = 0; recYards = 0; ypc = 0; recTD = 0; long = 0, yac = 0;
+        for (index1 = 0; index1 < receivers[index].values.length; ++index1){
+          //console.log(receivers[index].values[index1].YardsGained);
+          if (index1 == 0) { team = receivers[index].values[index1].posteam; }
+          targets++;
+          receptions = receptions + parseInt(receivers[index].values[index1].Reception);
+          recYards = recYards + parseInt(receivers[index].values[index1].YardsGained);
+          recTD = recTD + parseInt(receivers[index].values[index1].Touchdown);
+          yac = yac + parseInt(receivers[index].values[index1].YardsAfterCatch);
+          if (receivers[index].values[index1].YardsGained > long) { long = receivers[index].values[index1].YardsGained; }
+        }
+        if (receptions > 0){
+          ypc = formatDec(recYards * 1.00 / receptions);
+        } else { ypc = '-'; }
+        
+        // Add entry to passTbl
+        recTbl.push({
+          "Player Name": receivers[index].key, // Passer
+          "Team": team,
+          // any variables summed in nested loop
+          "Targets": targets,
+          "Rec": receptions,
+          "Rec Yards": recYards,
+          "Yards Per Reception": ypc, 
+          "Rec TD": recTD,
+          "YAC": yac,
+          "Long": long
+        });
+      }
+      
+      objSort(recTbl, 'Team', ['Rec', true]);
+      if (recTbl.length > 0 ) {
+        tabulate(recTbl, ['Player Name', 'Team', 'Targets', 'Rec', 'Rec Yards', 'Yards Per Reception', 'Rec TD', 'YAC', 'Long']);
+      }
+      // d3.select('body').append('p');
+    }
+
+    var tabulate = function (data,columns) {
+      var table = d3.select('body').append('table')
+      var thead = table.append('thead')
+      var tbody = table.append('tbody')
+
+      thead.append('tr')
+        .selectAll('th')
+          .data(columns)
+          .enter()
+        .append('th')
+          .text(function (d) { return d })
+          // .on('click', function (d) {
+          //   thead.attr('class', 'header');
+
+      var rows = tbody.selectAll('tr')
+          .data(data)
+          .enter()
+        .append('tr')
+
+      var cells = rows.selectAll('td')
+          .data(function(row) {
+            return columns.map(function (column) {
+              return { column: column, value: row[column] }
+            })
+          })
+          .enter()
+        .append('td')
+          .text(function (d) { return d.value })
+
+      return table;
+    }
+
+  // Multidimensional sort. THANK YOU STACKOVERFLOW!
+    function objSort() {
+      var args = arguments,
+          array = args[0],
+          case_sensitive, keys_length, key, desc, a, b, i;
+
+      if (typeof arguments[arguments.length - 1] === 'boolean') {
+          case_sensitive = arguments[arguments.length - 1];
+          keys_length = arguments.length - 1;
+      } else {
+          case_sensitive = false;
+          keys_length = arguments.length;
+      }
+
+      return array.sort(function (obj1, obj2) {
+          for (i = 1; i < keys_length; i++) {
+              key = args[i];
+              if (typeof key !== 'string') {
+                  desc = key[1];
+                  key = key[0];
+                  a = obj1[args[i][0]];
+                  b = obj2[args[i][0]];
+              } else {
+                  desc = false;
+                  a = obj1[args[i]];
+                  b = obj2[args[i]];
+              }
+
+              if (case_sensitive === false && typeof a === 'string') {
+                  a = a.toLowerCase();
+                  b = b.toLowerCase();
+              }
+
+              if (! desc) {
+                  if (a < b) return -1;
+                  if (a > b) return 1;
+              } else {
+                  if (a > b) return -1;
+                  if (a < b) return 1;
+              }
+          }
+          return 0;
+      });
+    } //end of objSort() function
+
+  })
+
+  </script>
+</body>
