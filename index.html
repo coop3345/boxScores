@@ -1,70 +1,97 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
+  body {
+    background-color: rgb(225, 225, 225);
+  }
   table { 
-		/* width: 100%;  */
+		width: 100%; 
 		border-collapse: collapse; 
 	}
 	/* Zebra striping */
-	tr:nth-of-type(odd) { 
-		background: #eee; 
+	tr:nth-of-type(even) { 
+		background: rgb(250, 250, 250); 
 	}
 	th { 
-		background: #333; 
-		color: white; 
+		background: #fff; 
+		color: black; 
 		font-weight: bold; 
 		cursor: s-resize;
 		background-repeat: no-repeat;
         background-position: 3% center;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd
 	}
 	td, th { 
 		padding: 6px; 
-		border: 1px solid #ccc; 
-		text-align: left; 
+		text-align: right; 
 	}
+  td {
+		border-top: 1px solid #eee;
+  }
+
+  tr:hover {
+    background-color: rgb(215, 215, 215)
+  }
+
+  th:first-child,td:first-child {
+    text-align: left;
+  }
 	
 	th.des:after {
-      content: "\21E9";
-    }
+    content: "\21E9";
+  }
     
-    th.aes:after {
-      content: "\21E7";
+  th.aes:after {
+    content: "\21E7";
+  }
+
+  .clearfix:after {
+    margin-block-end: 8px;
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
     }
+  * html .clearfix             { zoom: 1; } /* IE6 */
+  *:first-child+html .clearfix { zoom: 1; } /* IE7 */
 
-.ticks {
-  font: 10px sans-serif;
-}
+  .ticks {
+    font: 10px sans-serif;
+  }
 
-.track,
-.track-inset,
-.track-overlay {
-  stroke-linecap: round;
-}
+  .track,
+  .track-inset,
+  .track-overlay {
+    stroke-linecap: round;
+  }
 
-.track {
-  stroke: #000;
-  stroke-opacity: 0.3;
-  stroke-width: 10px;
-}
+  .track {
+    stroke: #000;
+    stroke-opacity: 0.3;
+    stroke-width: 10px;
+  }
 
-.track-inset {
-  stroke: #ddd;
-  stroke-width: 8px;
-}
+  .track-inset {
+    stroke: rgb(22, 163, 69);
+    stroke-width: 8px;
+  }
 
-.track-overlay {
-  pointer-events: stroke;
-  stroke-width: 50px;
-  stroke: transparent;
-  cursor: crosshair;
-}
+  .track-overlay {
+    pointer-events: stroke;
+    stroke-width: 50px;
+    stroke: transparent;
+    cursor: crosshair;
+  }
 
-.handle {
-  fill: rgba(126, 79, 8, 0.87);
-  stroke: #000;
-  stroke-opacity: 0.5;
-  stroke-width: 1.25px;
-}
+  .handle {
+    fill: rgba(126, 79, 8, 0.87);
+    stroke: #000;
+    stroke-opacity: 0.5;
+    stroke-width: 1.25px;
+  }
 </style>
 <body>
   <select id="week"></select>
@@ -139,8 +166,8 @@
     });
     //console.log(data1);
     
-    var margin = {right: 50, left: 50},
-        width = 700 - margin.left - margin.right,
+    var margin = {right: 50, left: 50, padLeft: 170, padTop: -19},
+        width = screen.width - margin.padLeft - 18,
         height = 30,
         sx = 5,
         sy = 9.5,
@@ -152,7 +179,9 @@
         gameIDs = [],
         formatInt = d3.format(".0f"),
         formatDec = d3.format(".2f"),
-        sortAscending = true;
+        sortAscending = true,
+        awayTeamSelect,
+        homeTeamSelect;
 
   //Dropdowns
     var gameSelect = d3.select("#game")
@@ -222,7 +251,7 @@
         .append("svg")
         .attr("width", width)
         .attr("height", height)
-        .attr("transform", "translate(" + 170  + "," + -19 + ")");
+        .attr("transform", "translate(" + margin.padLeft  + "," + margin.padTop + ")");
 
     var x = d3.scaleLinear()
         .domain([3600, -900])
@@ -386,17 +415,17 @@
     // delete score object
 
     //Create score object
-    var h, a, sA, sH; // homeTeam, awayTeam, scoreAway, scoreHome
+    var sA, sH; // homeTeam, awayTeam, scoreAway, scoreHome
 
     if (gameSelection != 'Games'){
       for (var i = gameFiltered.length - 1; i--; i >= 0) {
-        h = gameFiltered[i].HomeTeam;
-        a = gameFiltered[i].AwayTeam;
-
-        if (gameFiltered[i].posteam == h || gameFiltered[i].DefensiveTeam == a) {
+        homeTeamSelect = gameFiltered[i].HomeTeam;
+        awayTeamSelect = gameFiltered[i].AwayTeam;
+        
+        if (gameFiltered[i].posteam == homeTeamSelect || gameFiltered[i].DefensiveTeam == awayTeamSelect) {
           sH = gameFiltered[i].PosTeamScore;
           sA = gameFiltered[i].DefTeamScore;
-        } else if (gameFiltered[i].posteam == a || gameFiltered[i].DefensiveTeam == h) {
+        } else if (gameFiltered[i].posteam == awayTeamSelect || gameFiltered[i].DefensiveTeam == homeTeamSelect) {
           sA = gameFiltered[i].PosTeamScore;
           sH = gameFiltered[i].DefTeamScore;
         }
@@ -445,25 +474,58 @@
 
         // Add entry to passTbl
         passTbl.push({
-          "Player Name": passers[index].key, // Passer
-          "Team": team,
+          "NAME": passers[index].key, // Passer
+          "TEAM": team,
           // any variables summed in nested loop
-          "Complete": completions,
-          "Attempts": attempts,
-          "Pass Yards": passYards,
-          "Pass TD": passTD,
+          // "Complete": completions,
+          // "Attempts": attempts,
+          "C / ATT": completions + ' / ' + attempts,
+          "YDS": passYards,
+          "TD": passTD,
           "INT": interceptions,
-          "QB Hit": qbHits,
-          "Sacked": sacks,
-          "Sack Yards": sackYards
+          "QB HIT": qbHits,
+          "SACKS": sacks,
+          "SACK YDS": sackYards
         });
       }
       objSort(passTbl, 'Team', ['Attempts', true]);
+
       if (passTbl.length > 0){
-        tabulate(passTbl, ['Player Name', 'Team', 'Complete', 'Attempts', 'Pass Yards', 'Pass TD', 'INT', 'QB Hit', 'Sacked', 'Sack Yards']);
-        d3.select('body').append('p');
+        d3.select('#pass').selectAll('text').remove();
+        d3.select('#pass').remove();
+        d3.select('body').append('div').attr('id', 'pass').attr('class', 'clearfix');
+
+        if (gameSelection != "Games") {
+          d3.select('#homeTeamPass').remove();
+          d3.select('#awayTeamPass').remove();
+
+          d3.select('#pass')
+            .append('div')
+              .attr('id', 'awayTeamPass')
+              .style('float', 'left')
+              .style('width', 49.75+'%')
+              .style('overflow', 'auto')
+              .style('background-color', 'white')
+              .append('text').text(homeTeamSelect + ' Passing');
+          d3.select('#pass')
+            .append('div')
+              .attr('id', 'homeTeamPass')
+              .style('float', 'right')
+              .style('width', 49.75+'%')
+              .style('overflow', 'auto')
+              .style('background-color', 'white')
+              .append('text').text(awayTeamSelect + ' Passing');
+            
+          tabulate('#awayTeamPass', passTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
+          tabulate('#homeTeamPass', passTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
+
+        } else {
+          d3.select('#pass')
+              .style('background-color', 'white')
+              .append('text').text('Passing');
+          tabulate('#pass', passTbl, ['NAME', 'TEAM', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
+        }
       }
-      // console.log(passTbl);
     }
 
     function refreshRush(){
@@ -498,23 +560,53 @@
 
         // Add entry to passTbl
         rushTbl.push({
-          "Player Name": rushers[index].key, // Passer
-          "Team": team,
+          "NAME": rushers[index].key, // Passer
+          "TEAM": team,
           // any variables summed in nested loop
-          "Attempts": attempts,
-          "Rush Yards": rushYards,
-          "Yards Per Carry": ypc,
-          "Rush TD": rushTD,
-          "Fumbles": fumbles,
-          "Fumbles Lost": fumblesLost,
-          "Long": long
+          "ATT": attempts,
+          "YDS": rushYards,
+          "AVG": ypc,
+          "TD": rushTD,
+          "FUM": fumbles,
+          "LOST": fumblesLost,
+          "LONG": long
         });
       }
       objSort(rushTbl, 'Team', ['Attempts', true]);
       if (rushTbl.length > 0 ) {
-        // d3.select('body').append('p').text('Rushing')
-        tabulate(rushTbl, ['Player Name', 'Team', 'Attempts', 'Rush Yards', 'Yards Per Carry', 'Rush TD', 'Long', 'Fumbles', 'Fumbles Lost']);
-        d3.select('body').append('p');
+        d3.select('#rush').selectAll('text').remove();
+        d3.select('#rush').remove();
+        d3.select('body').append('div').attr('id', 'rush').attr('class', 'clearfix');
+
+        if (gameSelection != "Games") {
+          d3.select('#homeTeamRush').remove();
+          d3.select('#awayTeamRush').remove();
+
+          d3.select('#rush')
+            .append('div')
+              .attr('id', 'awayTeamRush')
+              .style('float', 'left')
+              .style('width', 49.75+'%')
+              .style('overflow', 'auto')
+              .style('background-color', 'white')
+              .append('text').text(homeTeamSelect + ' Rushing');
+          d3.select('#rush')
+            .append('div')
+              .attr('id', 'homeTeamRush')
+              .style('float', 'right')
+              .style('width', 49.75+'%')
+              .style('overflow', 'auto')
+              .style('background-color', 'white')
+              .append('text').text(awayTeamSelect + ' Rushing');
+            
+          tabulate('#homeTeamRush', rushTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
+          tabulate('#awayTeamRush', rushTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
+        } else {
+          d3.select('#rush')
+              .style('background-color', 'white')
+              .append('text').text('Rushing');
+          tabulate('#rush', rushTbl, ['NAME', 'TEAM', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
+        }
       }
     }
 
@@ -546,28 +638,62 @@
         
         // Add entry to passTbl
         recTbl.push({
-          "Player Name": receivers[index].key, // Passer
-          "Team": team,
+          "NAME": receivers[index].key, // Passer
+          "TEAM": team,
           // any variables summed in nested loop
-          "Targets": targets,
-          "Rec": receptions,
-          "Rec Yards": recYards,
-          "Yards Per Reception": ypc, 
-          "Rec TD": recTD,
+          "TAR": targets,
+          "REC": receptions,
+          "YDS": recYards,
+          "AVG": ypc, 
+          "TD": recTD,
           "YAC": yac,
-          "Long": long
+          "LONG": long
         });
       }
       
       objSort(recTbl, 'Team', ['Rec', true]);
       if (recTbl.length > 0 ) {
-        tabulate(recTbl, ['Player Name', 'Team', 'Targets', 'Rec', 'Rec Yards', 'Yards Per Reception', 'Rec TD', 'YAC', 'Long']);
+        d3.select('#rec').selectAll('text').remove();
+        d3.select('#rec').remove();
+        d3.select('body').append('div').attr('id', 'rec').attr('class', 'clearfix');
+
+        if (gameSelection != "Games") {
+          d3.select('#homeTeamRec').remove();
+          d3.select('#awayTeamRec').remove();
+
+          d3.select('#rec')
+            .append('div')
+              .attr('id', 'awayTeamRec')
+              .style('float', 'left')
+              .style('width', 49.75+'%')
+              .style('overflow', 'auto')
+              .style('background-color', 'white')
+              .append('text').text(homeTeamSelect + ' Receiving');
+          d3.select('#rec')
+            .append('div')
+              .attr('id', 'homeTeamRec')
+              .style('float', 'right')
+              .style('width', 49.75+'%')
+              .style('overflow', 'auto')
+              .style('background-color', 'white')
+              .append('text').text(awayTeamSelect + ' Receiving');
+            
+          tabulate('#homeTeamRec', recTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
+          tabulate('#awayTeamRec', recTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
+        } else {
+          d3.select('#rec')
+              .style('background-color', 'white')
+              .append('text').text('Receiving');
+          
+          tabulate('rec', recTbl, ['NAME', 'TEAM', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
+        }
       }
       // d3.select('body').append('p');
     }
 
-    var tabulate = function (data,columns) {
-      var table = d3.select('body').append('table')
+    var tabulate = function (divSelect,data,columns) {
+      var table = d3.select(divSelect).append('table')
+      //var table = body.append('table')
 
       var headers = table.append('thead').append('tr')
         .selectAll('th')
