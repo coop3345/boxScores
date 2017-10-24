@@ -506,7 +506,7 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(homeTeamSelect + ' Passing');
+              .append('text').text(awayTeamSelect + ' Passing');
           d3.select('#pass')
             .append('div')
               .attr('id', 'homeTeamPass')
@@ -514,7 +514,7 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(awayTeamSelect + ' Passing');
+              .append('text').text(homeTeamSelect + ' Passing');
             
           tabulate('#awayTeamPass', passTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
           tabulate('#homeTeamPass', passTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
@@ -589,7 +589,7 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(homeTeamSelect + ' Rushing');
+              .append('text').text(awayTeamSelect + ' Rushing');
           d3.select('#rush')
             .append('div')
               .attr('id', 'homeTeamRush')
@@ -597,7 +597,7 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(awayTeamSelect + ' Rushing');
+              .append('text').text(homeTeamSelect + ' Rushing');
             
           tabulate('#homeTeamRush', rushTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
           tabulate('#awayTeamRush', rushTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
@@ -668,7 +668,7 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(homeTeamSelect + ' Receiving');
+              .append('text').text(awayTeamSelect + ' Receiving');
           d3.select('#rec')
             .append('div')
               .attr('id', 'homeTeamRec')
@@ -676,7 +676,7 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(awayTeamSelect + ' Receiving');
+              .append('text').text(homeTeamSelect + ' Receiving');
             
           tabulate('#homeTeamRec', recTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
           tabulate('#awayTeamRec', recTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
