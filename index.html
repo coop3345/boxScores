@@ -99,12 +99,13 @@
   <select id="week"></select>
   <select id="game"></select>
   <div id="svg"></div>
+  <div id="gameSvg"></div>
   <!--svg width="1340" height="250"></svg -->
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script>
   // Get all the data. Start working with filters
-  d3.csv("pbp16.csv", function(error, data1){
-    data1.forEach(function(d){
+  d3.csv("pbp16.csv", function(error, data){
+    data.forEach(function(d){
       // GameID = +d.GameID;
       // Drive = +d.Drive;
       // qtr = +d.qtr;
@@ -166,7 +167,7 @@
       // Kicker_ID = +d.Kicker_ID;
       // WeekNumber = +d.WeekNumber;
     });
-    //console.log(data1);
+    //console.log(data);
     
     var margin = {right: 50, left: 50, padLeft: 170, padTop: -19},
         width = screen.width - margin.padLeft - 18,
@@ -249,6 +250,7 @@
     
 
   // Slider
+    d3.select('#svg').style('height', height + margin.padTop + 8 + 'px');
     var svg = d3.select("#svg")
         .append("svg")
         .attr("width", width)
@@ -391,7 +393,7 @@
 
   // Filter
     function gameFilter(){
-      gameFiltered = data1.filter(function(d){
+      gameFiltered = data.filter(function(d){
         if( (d["GameID"] == gameSelection || gameSelection === "Games") && (d["WeekNumber"] == weekSelection || weekSelection === 'Week') && d["TimeSecs"] >= secondSelection ){
           return d;
         }
@@ -402,7 +404,7 @@
     
   // refresh all data for displayed objects
     function refreshObj(){
-      refreshScore();
+      refreshGameOverview();
 
       d3.select('body').selectAll('table').remove();
       d3.select('body').selectAll('p').remove();
@@ -412,14 +414,20 @@
       refreshRec();
     }
 
-  // Score
-  function refreshScore() {
-    // delete score object
-
-    //Create score object
-    var sA, sH; // homeTeam, awayTeam, scoreAway, scoreHome
+  function refreshGameOverview() {
+    // delete all objects
+    d3.select('#gameSvg').selectAll('svg').remove()
+    var sA, sH; // scoreAway, scoreHome
 
     if (gameSelection != 'Games'){
+      // Create SVG
+/*       var gameSvg = d3.select("#gameSvg")
+        .append("svg")
+        .attr("width", screen.width - 16)
+        .attr("height", 300); */
+
+  //Create score object
+  // Score
       for (var i = gameFiltered.length - 1; i--; i >= 0) {
         homeTeamSelect = gameFiltered[i].HomeTeam;
         awayTeamSelect = gameFiltered[i].AwayTeam;
@@ -433,12 +441,50 @@
         }
 
         if ( sA > -1 && sH > -1) { break; }
-     }
+      }
+
+      var lastPlay = gameFiltered[gameFiltered.length - 1].playdesc
+      // gameSvg.append("text").text(lastPlay).attr('y', 15);
+      // Win Probability
+      wp = gameFiltered.filter(function(d){ return d.Home_WP_post || d.Away_WP_post});
+      
+      /* gWP = gameSvg.append('g').attr('transform', 'translate(20, 20)'); 
+
+      var x = d3.scaleLinear().rangeRound([screen.width - 32, 0]);
+      var y = d3.scaleLinear().rangeRound([0, 250]);
+      var homeWP = d3.line()
+          .x(function(d) { return x(parseInt(d.TimeSecs))})
+          .y(function(d) { return y(parseFloat(d.Home_WP_post))})
+
+      gWP.append("g")
+        .attr("transform", "translate(0," + 250 + ")")
+          .call(d3.axisBottom(x))
+        .select(".domain")
+          .remove();
+
+      gWP.append("g")
+          .call(d3.axisLeft(y))
+        .append("text")
+          .attr("fill", "#000")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", "0.71em")
+          .attr("text-anchor", "end")
+          .text("Win Prob");
+
+      gWP.append("path")
+        .datum(wp)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-linecap", "round")
+        .attr("stroke-width", 1.5)
+        .attr("d", homeWP);
+    */
     }
     // console.log(gameFiltered);
     // console.log(h + ": " + sH + ' || ' + a + ": " + sA);
   }
-  // Win Probability
 
   // Team Comparisons
 
@@ -449,7 +495,7 @@
       passTbl = [];
       passers = d3.nest()
           .key(function(d) { return d.Passer })
-          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Pass" || d.PlayType == "Sack") }));
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Pass" || d.PlayType == "Sack") && d.Passer !== "" && d.Passer !== "NA"}));
 
       var index, index1, team, attempts, completions, passYards, passTD, interceptions, sacks, sackYards, qbHits;
 
@@ -490,12 +536,12 @@
           "SACK YDS": sackYards
         });
       }
-      objSort(passTbl, 'Team', ['Attempts', true]);
+      objSort(passTbl, 'TEAM', ['YDS', true]);
+      d3.select('#pass').selectAll('text').remove();
+      d3.select('#pass').remove();
+      d3.select('body').append('div').attr('id', 'pass').attr('class', 'clearfix');
 
       if (passTbl.length > 0){
-        d3.select('#pass').selectAll('text').remove();
-        d3.select('#pass').remove();
-        d3.select('body').append('div').attr('id', 'pass').attr('class', 'clearfix');
 
         if (gameSelection != "Games") {
           d3.select('#homeTeamPass').remove();
@@ -517,14 +563,14 @@
               .style('overflow', 'auto')
               .style('background-color', 'white')
               .append('text').text(homeTeamSelect + ' Passing');
-            
+          
           tabulate('#awayTeamPass', passTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
           tabulate('#homeTeamPass', passTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
 
         } else {
           d3.select('#pass')
               .style('background-color', 'white')
-              .append('text').text('Passing');
+              .append('text').text('Week ' + weekSelection + ' Passing');
           tabulate('#pass', passTbl, ['NAME', 'TEAM', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
         }
       }
@@ -534,7 +580,7 @@
       rushTbl = [];
       rushers = d3.nest()
           .key(function(d) { return d.Rusher })
-          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Run" || d.PlayType == "Sack") && d.Rusher !== "NA" }));
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Run" || d.PlayType == "Sack") && d.Rusher !== "" && d.Rusher !== "NA" }));
 
       var index, index1, team, attempts, rushYards, ypc, rushTD, fumbles, fumblesLost, long;
 
@@ -574,11 +620,12 @@
           "LONG": long
         });
       }
-      objSort(rushTbl, 'Team', ['Attempts', true]);
+      objSort(rushTbl, 'TEAM', ['ATT', true]);
+      d3.select('#rush').selectAll('text').remove();
+      d3.select('#rush').remove();
+      d3.select('body').append('div').attr('id', 'rush').attr('class', 'clearfix');
+      
       if (rushTbl.length > 0 ) {
-        d3.select('#rush').selectAll('text').remove();
-        d3.select('#rush').remove();
-        d3.select('body').append('div').attr('id', 'rush').attr('class', 'clearfix');
 
         if (gameSelection != "Games") {
           d3.select('#homeTeamRush').remove();
@@ -606,7 +653,7 @@
         } else {
           d3.select('#rush')
               .style('background-color', 'white')
-              .append('text').text('Rushing');
+              .append('text').text('Week ' + weekSelection + ' Rushing');
           tabulate('#rush', rushTbl, ['NAME', 'TEAM', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
         }
       }
@@ -616,7 +663,7 @@
       recTbl = [];
       receivers = d3.nest()
           .key(function(d) { return d.Receiver })
-          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Pass") && d.Receiver !== "NA" }));
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Pass") && d.Receiver !== "" && d.Receiver !== "NA" }));
 
       var index, index1, team, targets, receptions, recYards, ypc, recTD, long, yac;
 
@@ -652,12 +699,12 @@
           "LONG": long
         });
       }
+      objSort(recTbl, 'TEAM', ['REC', true]);
+      d3.select('#rec').selectAll('text').remove();
+      d3.select('#rec').remove();
+      d3.select('body').append('div').attr('id', 'rec').attr('class', 'clearfix');
       
-      objSort(recTbl, 'Team', ['Rec', true]);
       if (recTbl.length > 0 ) {
-        d3.select('#rec').selectAll('text').remove();
-        d3.select('#rec').remove();
-        d3.select('body').append('div').attr('id', 'rec').attr('class', 'clearfix');
 
         if (gameSelection != "Games") {
           d3.select('#homeTeamRec').remove();
@@ -685,7 +732,7 @@
         } else {
           d3.select('#rec')
               .style('background-color', 'white')
-              .append('text').text('Receiving');
+              .append('text').text('Week ' + weekSelection + ' Receiving');
           
           tabulate('rec', recTbl, ['NAME', 'TEAM', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
         }
