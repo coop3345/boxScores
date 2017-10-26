@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
+<meta charset='utf-8'>
 <style>
   body {
     background-color: rgb(225, 225, 225);
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   }
   table { 
 		width: 100%; 
@@ -39,11 +40,11 @@
   }
 	
 	th.des:after {
-    content: "\21E9";
+    content: '\21E9';
   }
     
   th.aes:after {
-    content: "\21E7";
+    content: '\21E7';
   }
 
   .clearfix:after {
@@ -53,7 +54,7 @@
     visibility: hidden;
     display: block;
     font-size: 0;
-    content: " ";
+    content: ' ';
     clear: both;
     height: 0;
     }
@@ -96,15 +97,15 @@
   }
 </style>
 <body>
-  <select id="week"></select>
-  <select id="game"></select>
-  <div id="svg"></div>
-  <div id="gameSvg"></div>
-  <!--svg width="1340" height="250"></svg -->
-  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <select id='week'></select>
+  <select id='game'></select>
+  <div id='svg'></div>
+  <div id='gameSvg'></div>
+  <!--svg width='1340' height='250'></svg -->
+  <script src='https://d3js.org/d3.v4.min.js'></script>
   <script>
   // Get all the data. Start working with filters
-  d3.csv("pbp16.csv", function(error, data){
+  d3.csv('pbp16.csv', function(error, data){
     data.forEach(function(d){
       // GameID = +d.GameID;
       // Drive = +d.Drive;
@@ -180,14 +181,55 @@
         gameSelection = 'Games',
         games = ['Games'],
         gameIDs = [],
-        formatInt = d3.format(".0f"),
-        formatDec = d3.format(".2f"),
+        formatInt = d3.format('.0f'),
+        formatDec = d3.format('.2f'),
         sortAscending = true,
         awayTeamSelect,
-        homeTeamSelect;
+        homeTeamSelect,
+        awayTeamFull,
+        homeTeamFull,
+        awayTeamIcon,
+        homeTeamIcon;
 
+    var Teams = 
+    [
+      {'abbr': 'NE', 'name': 'New England Patriots', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ne.png&h=100&w=100'},
+      {'abbr': 'MIA', 'name': 'Miami Dolphins', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/mia.png&h=100&w=100'},
+      {'abbr': 'BUF', 'name': 'Buffalo Bills', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/buf.png&h=100&w=100'},
+      {'abbr': 'NYJ', 'name': 'New York Jets', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/nyj.png&h=100&w=100'},
+      {'abbr': 'PIT', 'name': 'Pittsburgh Steelers', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/pit.png&h=100&w=100'},
+      {'abbr': 'BAL', 'name': 'Baltimore Ravens', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/bal.png&h=100&w=100'},
+      {'abbr': 'CIN', 'name': 'Cincinnati Bengals', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/cin.png&h=100&w=100'},
+      {'abbr': 'CLE', 'name': 'Cleveland Browns', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/cle.png&h=100&w=100'},
+      {'abbr': 'TEN', 'name': 'Tennessee Titans', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ten.png&h=100&w=100'},
+      {'abbr': 'JAC', 'name': 'Jacksonville Jaguars', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/jac.png&h=100&w=100'},
+      {'abbr': 'HOU', 'name': 'Houston Texans', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/hou.png&h=100&w=100'},
+      {'abbr': 'IND', 'name': 'Indianapolis Colts', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ind.png&h=100&w=100'},
+      {'abbr': 'KC', 'name': 'Kansas City Chiefs', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/kc.png&h=100&w=100'},
+      {'abbr': 'DEN', 'name': 'Denver Broncos', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/den.png&h=100&w=100'},
+      {'abbr': 'OAK', 'name': 'Oakland Raiders', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/oak.png&h=100&w=100'},
+      {'abbr': 'SD', 'name': 'San Diego Chargers', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/sd.png&h=100&w=100'},
+      {'abbr': 'LAC', 'name': 'Los Angeles Chargers', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/lac.png&h=100&w=100'},
+      {'abbr': 'PHI', 'name': 'Philadelphia Eagles', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/phi.png&h=100&w=100'},
+      {'abbr': 'WAS', 'name': 'Washington Redskins', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/was.png&h=100&w=100'},
+      {'abbr': 'DAL', 'name': 'Dallas Cowboys', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/dal.png&h=100&w=100'},
+      {'abbr': 'NYG', 'name': 'New York Giants', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/nyg.png&h=100&w=100'},
+      {'abbr': 'MIN', 'name': 'Minnesota Vikings', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/min.png&h=100&w=100'},
+      {'abbr': 'GB', 'name': 'Green Bay Packers', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/gb.png&h=100&w=100'},
+      {'abbr': 'DET', 'name': 'Detroit Lions', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/det.png&h=100&w=100'},
+      {'abbr': 'CHI', 'name': 'Chicago Bears', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/chi.png&h=100&w=100'},
+      {'abbr': 'NO', 'name': 'New Orleans Saints', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/no.png&h=100&w=100'},
+      {'abbr': 'CAR', 'name': 'Carolina Panthers', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/car.png&h=100&w=100'},
+      {'abbr': 'ATL', 'name': 'Atlanta Falcons', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/atl.png&h=100&w=100'},
+      {'abbr': 'TB', 'name': 'Tampa Bay Buccaneers', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/tb.png&h=100&w=100'},
+      {'abbr': 'SEA', 'name': 'Seattle Seahawks', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/sea.png&h=100&w=100'},
+      {'abbr': 'ARI', 'name': 'Arizona Cardinals', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/ari.png&h=100&w=100'},
+      {'abbr': 'LAR', 'name': 'Los Angeles Rams', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/stl.png&h=100&w=100'},
+      {'abbr': 'STL', 'name': 'St. Louis Rams', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/lar.png&h=100&w=100'},
+      {'abbr': 'SF', 'name': 'San Francisco 49ers', 'imageLink': 'http://a1.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/sf.png&h=100&w=100'}
+    ]
   //Dropdowns
-    var gameSelect = d3.select("#game")
+    var gameSelect = d3.select('#game')
           .on('change', gameChange)
 
     var gameOptions = gameSelect
@@ -208,7 +250,7 @@
       gameFilter();
     };
 
-    var weekSelect = d3.select("#week")
+    var weekSelect = d3.select('#week')
           .on('change',weekChange)
     
     var weekOptions = weekSelect
@@ -225,7 +267,7 @@
 
       var index,
           kickoffs = gameFiltered.filter(function(d){
-            return d.PlayType == "Kickoff" && d.TimeSecs == "3600";
+            return d.PlayType == 'Kickoff' && d.TimeSecs == '3600';
           });
 
       games = ['Games']; gameIDs = ['Games'];
@@ -251,11 +293,11 @@
 
   // Slider
     d3.select('#svg').style('height', height + margin.padTop + 8 + 'px');
-    var svg = d3.select("#svg")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("transform", "translate(" + margin.padLeft  + "," + margin.padTop + ")");
+    var svg = d3.select('#svg')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('transform', 'translate(' + margin.padLeft  + ',' + margin.padTop + ')');
 
     var x = d3.scaleLinear()
         .domain([3600, -900])
@@ -263,99 +305,99 @@
         .clamp(true);
 
     var slider = svg
-      .append("g")
-        .attr("class", "slider")
-        .attr("transform", "translate(" + 85  + "," + sy + ")");
+      .append('g')
+        .attr('class', 'slider')
+        .attr('transform', 'translate(85, ' + sy + ')');
 
-    slider.append("line")
-        .attr("class", "track")
-        .attr("x1", x.range()[0])
-        .attr("x2", x.range()[1])
+    slider.append('line')
+        .attr('class', 'track')
+        .attr('x1', x.range()[0])
+        .attr('x2', x.range()[1])
       .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-        .attr("class", "track-inset")
+        .attr('class', 'track-inset')
       .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-        .attr("class", "track-overlay")
+        .attr('class', 'track-overlay')
         .call(d3.drag()
-            .on("start.interrupt", function() { slider.interrupt(); })
-            .on("start drag", function() { clock(x.invert(d3.event.x)); })
-            .on("end", function() {gameFilter();})
+            .on('start.interrupt', function() { slider.interrupt(); })
+            .on('start drag', function() { clock(x.invert(d3.event.x)); })
+            .on('end', function() {gameFilter();})
           );
 
-    slider.insert("g", ".track-overlay")
-        .attr("class", "ticks")
-        .attr("transform", "translate(0," + 20 + ")")
-      .selectAll("text")
+    slider.insert('g', '.track-overlay')
+        .attr('class', 'ticks')
+        .attr('transform', 'translate(0,' + 20 + ')')
+      .selectAll('text')
         .data(x.ticks(4))
-      .enter().append("text")
-        .attr("x", x)
-        .attr("text-anchor", "middle")
+      .enter().append('text')
+        .attr('x', x)
+        .attr('text-anchor', 'middle')
         .text(function(d) { var c = secsToClock(d);
           return c;
         });
 
-    var handle = slider.insert("ellipse", ".track-overlay")
-        .attr("class", "handle")
-        .attr("rx", 13)
-        .attr("ry", 8);
+    var handle = slider.insert('ellipse', '.track-overlay')
+        .attr('class', 'handle')
+        .attr('rx', 13)
+        .attr('ry', 8);
     
-    var lace1 = slider.insert('line', ".track-toverlay")
-        .attr("y1", -2)
-        .attr("y2", 2)
-        .attr("stroke-width", 1)
-        .attr("stroke", "white");
+    var lace1 = slider.insert('line', '.track-toverlay')
+        .attr('y1', -2)
+        .attr('y2', 2)
+        .attr('stroke-width', 1)
+        .attr('stroke', 'white');
 
-    var lace2 = slider.insert('line', ".track-toverlay")
-        .attr("y1", -2)
-        .attr("y2", 2)
-        .attr("stroke-width", 1)
-        .attr("stroke", "white");
+    var lace2 = slider.insert('line', '.track-toverlay')
+        .attr('y1', -2)
+        .attr('y2', 2)
+        .attr('stroke-width', 1)
+        .attr('stroke', 'white');
 
-    var lace3 = slider.insert('line', ".track-toverlay")
-        .attr("y1", -2)
-        .attr("y2", 2)
-        .attr("stroke-width", 1)
-        .attr("stroke", "white");
+    var lace3 = slider.insert('line', '.track-toverlay')
+        .attr('y1', -2)
+        .attr('y2', 2)
+        .attr('stroke-width', 1)
+        .attr('stroke', 'white');
 
-    var lace4 = slider.insert('line', ".track-toverlay")
-        .attr("y1", -2)
-        .attr("y2", 2)
-        .attr("stroke-width", 1)
-        .attr("stroke", "white");
+    var lace4 = slider.insert('line', '.track-toverlay')
+        .attr('y1', -2)
+        .attr('y2', 2)
+        .attr('stroke-width', 1)
+        .attr('stroke', 'white');
     
-    var lace5 = slider.insert('line', ".track-toverlay")
-        .attr("y1", -2)
-        .attr("y2", 2)
-        .attr("stroke-width", 1)
-        .attr("stroke", "white");
+    var lace5 = slider.insert('line', '.track-toverlay')
+        .attr('y1', -2)
+        .attr('y2', 2)
+        .attr('stroke-width', 1)
+        .attr('stroke', 'white');
 
-    var laceC = slider.insert('line', ".track-toverlay")
-        .attr("y1", 0)
-        .attr("y2", 0)
-        .attr("stroke-width", 1)
-        .attr("stroke", "white");
+    var laceC = slider.insert('line', '.track-toverlay')
+        .attr('y1', 0)
+        .attr('y2', 0)
+        .attr('stroke-width', 1)
+        .attr('stroke', 'white');
 
     slider.transition() // Gratuitous intro!
         .duration(750)
-        .tween("clock", function() {
+        .tween('clock', function() {
           var i = d3.interpolate(0, 0);
           return function(t) { clock(i(t)); };
         });
 
-    myText = svg.append("text")
-      .attr('x', sx + 1)
-      .attr("y", 14);
-      // .attr("fill", "white")
-      // .attr("stroke", "white");
+    myText = svg.append('text')
+      .attr('x', sx)
+      .attr('y', 14);
+      // .attr('fill', 'white')
+      // .attr('stroke', 'white');
     
 
     function clock(h) {
-      handle.attr("cx", x(h)).text(function(h) { return h; });
-      lace1.attr("x1", x(h) - 6).attr("x2", x(h) - 6);
-      lace2.attr("x1", x(h) - 3).attr("x2", x(h) - 3);
-      lace3.attr("x1", x(h)).attr("x2", x(h));
-      lace4.attr("x1", x(h) + 3).attr("x2", x(h) + 3);
-      lace5.attr("x1", x(h) + 6).attr("x2", x(h) + 6);
-      laceC.attr("x1", x(h) - 6).attr("x2", x(h) + 6);
+      handle.attr('cx', x(h)).text(function(h) { return h; });
+      lace1.attr('x1', x(h) - 6).attr('x2', x(h) - 6);
+      lace2.attr('x1', x(h) - 3).attr('x2', x(h) - 3);
+      lace3.attr('x1', x(h)).attr('x2', x(h));
+      lace4.attr('x1', x(h) + 3).attr('x2', x(h) + 3);
+      lace5.attr('x1', x(h) + 6).attr('x2', x(h) + 6);
+      laceC.attr('x1', x(h) - 6).attr('x2', x(h) + 6);
 
       secondSelection = h;
       myText.text(secsToClock(formatInt(secondSelection))); 
@@ -394,7 +436,7 @@
   // Filter
     function gameFilter(){
       gameFiltered = data.filter(function(d){
-        if( (d["GameID"] == gameSelection || gameSelection === "Games") && (d["WeekNumber"] == weekSelection || weekSelection === 'Week') && d["TimeSecs"] >= secondSelection ){
+        if( (d['GameID'] == gameSelection || gameSelection === 'Games') && (d['WeekNumber'] == weekSelection || weekSelection === 'Week') && d['TimeSecs'] >= secondSelection ){
           return d;
         }
       })
@@ -412,6 +454,7 @@
       refreshPass();
       refreshRush();
       refreshRec();
+      refreshKick();
     }
 
   function refreshGameOverview() {
@@ -421,14 +464,20 @@
 
     if (gameSelection != 'Games'){
       // Create SVG
-/*       var gameSvg = d3.select("#gameSvg")
-        .append("svg")
-        .attr("width", screen.width - 16)
-        .attr("height", 300); */
+/*       var gameSvg = d3.select('#gameSvg')
+        .append('svg')
+        .attr('id', 'gameDisplay')
+        .attr('width', screen.width - 16)
+        .attr('height', 300);
+
+      var rect = gameSvg.append('rect')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('fill', 'white'); */
 
   //Create score object
   // Score
-      for (var i = gameFiltered.length - 1; i--; i >= 0) {
+      for (var i = gameFiltered.length - 1; i >= 0; i--) {
         homeTeamSelect = gameFiltered[i].HomeTeam;
         awayTeamSelect = gameFiltered[i].AwayTeam;
         
@@ -442,9 +491,31 @@
 
         if ( sA > -1 && sH > -1) { break; }
       }
+      // full team name
+      for (var i = 0; i < Teams.length; i++){
+        if (homeTeamSelect == Teams[i].abbr) {
+          homeTeamFull = Teams[i].name;
+          homeTeamIcon = Teams[i].imageLink;
+        }
+        if (awayTeamSelect == Teams[i].abbr) {
+          awayTeamFull = Teams[i].name;
+          awayTeamIcon = Teams[i].imageLink;
+        }
+      }
+/*       var img = document.createElement('IMG');
+      img.src = homeTeamIcon;
+      document.getElementById('gameSvg').append(img);
+
+      img.src = awayTeamIcon;
+      document.getElementById('gameSvg').append(img); */
+      
+      // d3.select('#gameSvg').selectAll('svg').append('svg:image')
+      //   .attr('xlink:href', awayTeamIcon);
+      // d3.select('#gameSvg').selectAll('svg').append('svg:image')
+      //   .attr('xlink:href', homeTeamIcon);
 
       var lastPlay = gameFiltered[gameFiltered.length - 1].playdesc
-      // gameSvg.append("text").text(lastPlay).attr('y', 15);
+      // gameSvg.append('text').text(lastPlay).attr('y', 15);
       // Win Probability
       wp = gameFiltered.filter(function(d){ return d.Home_WP_post || d.Away_WP_post});
       
@@ -456,34 +527,34 @@
           .x(function(d) { return x(parseInt(d.TimeSecs))})
           .y(function(d) { return y(parseFloat(d.Home_WP_post))})
 
-      gWP.append("g")
-        .attr("transform", "translate(0," + 250 + ")")
+      gWP.append('g')
+        .attr('transform', 'translate(0,' + 250 + ')')
           .call(d3.axisBottom(x))
-        .select(".domain")
+        .select('.domain')
           .remove();
 
-      gWP.append("g")
+      gWP.append('g')
           .call(d3.axisLeft(y))
-        .append("text")
-          .attr("fill", "#000")
-          .attr("transform", "rotate(-90)")
-          .attr("y", 6)
-          .attr("dy", "0.71em")
-          .attr("text-anchor", "end")
-          .text("Win Prob");
+        .append('text')
+          .attr('fill', '#000')
+          .attr('transform', 'rotate(-90)')
+          .attr('y', 6)
+          .attr('dy', '0.71em')
+          .attr('text-anchor', 'end')
+          .text('Win Prob');
 
-      gWP.append("path")
+      gWP.append('path')
         .datum(wp)
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-linecap", "round")
-        .attr("stroke-width", 1.5)
-        .attr("d", homeWP);
+        .attr('fill', 'none')
+        .attr('stroke', 'steelblue')
+        .attr('stroke-linejoin', 'round')
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-width', 1.5)
+        .attr('d', homeWP);
     */
     }
     // console.log(gameFiltered);
-    // console.log(h + ": " + sH + ' || ' + a + ": " + sA);
+    // console.log(h + ': ' + sH + ' || ' + a + ': ' + sA);
   }
 
   // Team Comparisons
@@ -495,15 +566,15 @@
       passTbl = [];
       passers = d3.nest()
           .key(function(d) { return d.Passer })
-          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Pass" || d.PlayType == "Sack") && d.Passer !== "" && d.Passer !== "NA"}));
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == 'Pass' || d.PlayType == 'Sack') && d.Passer !== '' && d.Passer !== 'NA'}));
 
-      var index, index1, team, attempts, completions, passYards, passTD, interceptions, sacks, sackYards, qbHits;
+      var team, attempts, completions, passYards, passTD, interceptions, sacks, sackYards, qbHits;
 
-      for (index = 0; index < passers.length; ++index){
+      for (var index = 0; index < passers.length; ++index){
         // console.log(passers[index].key);
         // console.log(passers[index].values[0]);
-        team = 0; attempts = 0; completions = 0; passYards = 0; passTD = 0; interceptions = 0; sacks = 0; sackYards = 0; qbHits = 0;
-        for (index1 = 0; index1 < passers[index].values.length; ++index1){
+        attempts = 0; completions = 0; passYards = 0; passTD = 0; interceptions = 0; sacks = 0; sackYards = 0; qbHits = 0;
+        for (var index1 = 0; index1 < passers[index].values.length; ++index1){
           //console.log(passers[index].values[index1].YardsGained);
           if (index1 == 0) { team = passers[index].values[index1].posteam; }
           if (passers[index].values[index1].PlayType == 'Pass') {
@@ -522,18 +593,18 @@
 
         // Add entry to passTbl
         passTbl.push({
-          "NAME": passers[index].key, // Passer
-          "TEAM": team,
+          'NAME': passers[index].key, // Passer
+          'TEAM': team,
           // any variables summed in nested loop
-          // "Complete": completions,
-          // "Attempts": attempts,
-          "C / ATT": completions + ' / ' + attempts,
-          "YDS": passYards,
-          "TD": passTD,
-          "INT": interceptions,
-          "QB HIT": qbHits,
-          "SACKS": sacks,
-          "SACK YDS": sackYards
+          // 'Complete': completions,
+          // 'Attempts': attempts,
+          'C / ATT': completions + ' / ' + attempts,
+          'YDS': passYards,
+          'TD': passTD,
+          'INT': interceptions,
+          'QB HIT': qbHits,
+          'SACKS': sacks,
+          'SACK YDS': sackYards
         });
       }
       objSort(passTbl, 'TEAM', ['YDS', true]);
@@ -543,7 +614,7 @@
 
       if (passTbl.length > 0){
 
-        if (gameSelection != "Games") {
+        if (gameSelection != 'Games') {
           d3.select('#homeTeamPass').remove();
           d3.select('#awayTeamPass').remove();
 
@@ -554,7 +625,16 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(awayTeamSelect + ' Passing');
+            .append('img')
+              .attr('class', 'picture')
+              .attr('src', awayTeamIcon.replace('h=100&w=100', 'h=20&w=20'))
+              .style('vertical-align', 'middle');
+          d3.select('#awayTeamPass')
+            .append('text')
+              .text(' ' + awayTeamFull + ' Passing ')
+              .style('font-weight', 'bold')
+              .style('vertical-align', 'middle');
+
           d3.select('#pass')
             .append('div')
               .attr('id', 'homeTeamPass')
@@ -562,15 +642,37 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(homeTeamSelect + ' Passing');
-          
+            .append('img')
+              .attr('class', 'picture')
+              .attr('src', homeTeamIcon.replace('h=100&w=100', 'h=20&w=20'))
+              .style('vertical-align', 'middle');
+          d3.select('#homeTeamPass')
+            .append('text')
+              .text(' ' + homeTeamFull + ' Passing')
+              .style('font-weight', 'bold')
+              .style('vertical-align', 'middle');
+
           tabulate('#awayTeamPass', passTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
           tabulate('#homeTeamPass', passTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
 
         } else {
-          d3.select('#pass')
+          if (weekSelection == 'Week') {
+            d3.select('#pass')
               .style('background-color', 'white')
-              .append('text').text('Week ' + weekSelection + ' Passing');
+              .append('text')
+                .text('Season Passing')
+                .style('font-weight', 'bold')
+                .style('vertical-align', 'middle');
+          } else {
+            d3.select('#pass')
+              .style('background-color', 'white')
+              .append('text')
+                .text('Week ' + weekSelection + ' Passing')
+                .style('font-weight', 'bold')
+                .style('vertical-align', 'middle');
+                // .on('click', hideDiv('tblpass'));
+          }
+
           tabulate('#pass', passTbl, ['NAME', 'TEAM', 'C / ATT', 'YDS', 'TD', 'INT', 'QB HIT', 'SACKS', 'SACK YDS']);
         }
       }
@@ -580,25 +682,25 @@
       rushTbl = [];
       rushers = d3.nest()
           .key(function(d) { return d.Rusher })
-          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Run" || d.PlayType == "Sack") && d.Rusher !== "" && d.Rusher !== "NA" }));
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == 'Run' || d.PlayType == 'Sack') && d.Rusher !== '' && d.Rusher !== 'NA' }));
 
-      var index, index1, team, attempts, rushYards, ypc, rushTD, fumbles, fumblesLost, long;
+      var team, attempts, rushYards, ypc, rushTD, fumbles, fumblesLost, long;
 
-      for (index = 0; index < rushers.length; ++index){
-        team = 0; attempts = 0; rushYards = 0; ypc = 0; rushTD = 0;  fumbles = 0; fumblesLost = 0; long = 0;
-        for (index1 = 0; index1 < rushers[index].values.length; ++index1){
+      for (var index = 0; index < rushers.length; ++index){
+        attempts = 0; rushYards = 0; ypc = 0; rushTD = 0;  fumbles = 0; fumblesLost = 0; long = 0;
+        for (var index1 = 0; index1 < rushers[index].values.length; ++index1){
           if (index1 == 0) { team = rushers[index].values[index1].posteam; }
           if (rushers[index].values[index1].PlayType == 'Run') {
             attempts++;
             rushYards = rushYards + parseInt(rushers[index].values[index1].YardsGained);
             rushTD = rushTD + parseInt(rushers[index].values[index1].Touchdown);
             fumbles = fumbles + parseInt(rushers[index].values[index1].Fumble);
-            if (rushers[index].values[index1].Fumble == "1" && rushers[index].values[index1].RecFumbTeam != rushers[index].values[index1].posteam) { fumblesLost++; }
-            if (rushers[index].values[index1].YardsGained > long) { long = rushers[index].values[index1].YardsGained; }
+            if (rushers[index].values[index1].Fumble == '1' && rushers[index].values[index1].RecFumbTeam != rushers[index].values[index1].posteam) { fumblesLost++; }
+            if (parseInt(rushers[index].values[index1].YardsGained) > long) { long = parseInt(rushers[index].values[index1].YardsGained); }
           }
           if (rushers[index].values[index1].PlayType == 'Sack') {
             fumbles = fumbles + parseInt(rushers[index].values[index1].Fumble);
-            if (rushers[index].values[index1].Fumble == "1" && rushers[index].values[index1].RecFumbTeam != rushers[index].values[index1].posteam) { fumblesLost++; }
+            if (rushers[index].values[index1].Fumble == '1' && rushers[index].values[index1].RecFumbTeam != rushers[index].values[index1].posteam) { fumblesLost++; }
           }
         }
         if (attempts > 0){
@@ -608,16 +710,16 @@
 
         // Add entry to passTbl
         rushTbl.push({
-          "NAME": rushers[index].key, // Passer
-          "TEAM": team,
+          'NAME': rushers[index].key, // Passer
+          'TEAM': team,
           // any variables summed in nested loop
-          "ATT": attempts,
-          "YDS": rushYards,
-          "AVG": ypc,
-          "TD": rushTD,
-          "FUM": fumbles,
-          "LOST": fumblesLost,
-          "LONG": long
+          'ATT': attempts,
+          'YDS': rushYards,
+          'AVG': ypc,
+          'TD': rushTD,
+          'FUM': fumbles,
+          'LOST': fumblesLost,
+          'LONG': long
         });
       }
       objSort(rushTbl, 'TEAM', ['ATT', true]);
@@ -627,7 +729,7 @@
       
       if (rushTbl.length > 0 ) {
 
-        if (gameSelection != "Games") {
+        if (gameSelection != 'Games') {
           d3.select('#homeTeamRush').remove();
           d3.select('#awayTeamRush').remove();
 
@@ -638,7 +740,16 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(awayTeamSelect + ' Rushing');
+            .append('img')
+              .attr('class', 'picture')
+              .attr('src', awayTeamIcon.replace('h=100&w=100', 'h=20&w=20'))
+              .style('vertical-align', 'middle');
+          d3.select('#awayTeamRush')
+            .append('text')
+            .text(' ' + awayTeamFull + ' Rushing')
+              .style('font-weight', 'bold')
+              .style('vertical-align', 'middle');
+
           d3.select('#rush')
             .append('div')
               .attr('id', 'homeTeamRush')
@@ -646,14 +757,35 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(homeTeamSelect + ' Rushing');
+            .append('img')
+              .attr('class', 'picture')
+              .attr('src', homeTeamIcon.replace('h=100&w=100', 'h=20&w=20'))
+              .style('vertical-align', 'middle');
+          d3.select('#homeTeamRush')
+            .append('text')
+              .text(' ' + homeTeamFull + ' Rushing')
+              .style('font-weight', 'bold')
+              .style('vertical-align', 'middle');
             
-          tabulate('#homeTeamRush', rushTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
           tabulate('#awayTeamRush', rushTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
+          tabulate('#homeTeamRush', rushTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
         } else {
-          d3.select('#rush')
+          if (weekSelection == 'Week') {
+            d3.select('#rush')
               .style('background-color', 'white')
-              .append('text').text('Week ' + weekSelection + ' Rushing');
+              .append('text')
+                .text('Season Rushing')
+                .style('font-weight', 'bold')
+                .style('vertical-align', 'middle');
+          } else {
+            d3.select('#rush')
+              .style('background-color', 'white')
+              .append('text')
+                .text('Week ' + weekSelection + ' Rushing')
+                .style('font-weight', 'bold')
+                .style('vertical-align', 'middle');
+          }
+
           tabulate('#rush', rushTbl, ['NAME', 'TEAM', 'ATT', 'YDS', 'AVG', 'TD', 'LONG', 'FUM', 'LOST']);
         }
       }
@@ -663,15 +795,15 @@
       recTbl = [];
       receivers = d3.nest()
           .key(function(d) { return d.Receiver })
-          .entries(gameFiltered.filter(function(d){ return (d.PlayType == "Pass") && d.Receiver !== "" && d.Receiver !== "NA" }));
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == 'Pass') && d.Receiver !== '' && d.Receiver !== 'NA' }));
 
-      var index, index1, team, targets, receptions, recYards, ypc, recTD, long, yac;
+      var team, targets, receptions, recYards, ypc, recTD, long, yac;
 
-      for (index = 0; index < receivers.length; ++index){
+      for (var index = 0; index < receivers.length; ++index){
         // console.log(receivers[index].key);
         // console.log(receivers[index].values[0]);
-        team = 0; targets = 0; receptions = 0; recYards = 0; ypc = 0; recTD = 0; long = 0, yac = 0;
-        for (index1 = 0; index1 < receivers[index].values.length; ++index1){
+        targets = 0; receptions = 0; recYards = 0; ypc = 0; recTD = 0; long = 0, yac = 0;
+        for (var index1 = 0; index1 < receivers[index].values.length; ++index1){
           //console.log(receivers[index].values[index1].YardsGained);
           if (index1 == 0) { team = receivers[index].values[index1].posteam; }
           targets++;
@@ -679,7 +811,7 @@
           recYards = recYards + parseInt(receivers[index].values[index1].YardsGained);
           recTD = recTD + parseInt(receivers[index].values[index1].Touchdown);
           yac = yac + parseInt(receivers[index].values[index1].YardsAfterCatch);
-          if (receivers[index].values[index1].YardsGained > long) { long = receivers[index].values[index1].YardsGained; }
+          if (parseInt(receivers[index].values[index1].YardsGained) > long) { long = parseInt(receivers[index].values[index1].YardsGained); }
         }
         if (receptions > 0){
           ypc = formatDec(recYards * 1.00 / receptions);
@@ -687,16 +819,16 @@
         
         // Add entry to passTbl
         recTbl.push({
-          "NAME": receivers[index].key, // Passer
-          "TEAM": team,
+          'NAME': receivers[index].key, // Passer
+          'TEAM': team,
           // any variables summed in nested loop
-          "TAR": targets,
-          "REC": receptions,
-          "YDS": recYards,
-          "AVG": ypc, 
-          "TD": recTD,
-          "YAC": yac,
-          "LONG": long
+          'TAR': targets,
+          'REC': receptions,
+          'YDS': recYards,
+          'AVG': ypc, 
+          'TD': recTD,
+          'YAC': yac,
+          'LONG': long
         });
       }
       objSort(recTbl, 'TEAM', ['REC', true]);
@@ -706,7 +838,7 @@
       
       if (recTbl.length > 0 ) {
 
-        if (gameSelection != "Games") {
+        if (gameSelection != 'Games') {
           d3.select('#homeTeamRec').remove();
           d3.select('#awayTeamRec').remove();
 
@@ -717,7 +849,16 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(awayTeamSelect + ' Receiving');
+            .append('img')
+              .attr('class', 'picture')
+              .attr('src', awayTeamIcon.replace('h=100&w=100', 'h=20&w=20'))
+              .style('vertical-align', 'middle');
+          d3.select('#awayTeamRec')
+            .append('text')
+             .text(' ' + awayTeamFull + ' Receiving')
+              .style('font-weight', 'bold')
+              .style('vertical-align', 'middle');
+
           d3.select('#rec')
             .append('div')
               .attr('id', 'homeTeamRec')
@@ -725,23 +866,155 @@
               .style('width', 49.75+'%')
               .style('overflow', 'auto')
               .style('background-color', 'white')
-              .append('text').text(homeTeamSelect + ' Receiving');
+            .append('img')
+              .attr('class', 'picture')
+              .attr('src', homeTeamIcon.replace('h=100&w=100', 'h=20&w=20'))
+              .style('vertical-align', 'middle');
+          d3.select('#homeTeamRec')
+            .append('text')
+              .text(' ' + homeTeamFull + ' Receiving')
+              .style('font-weight', 'bold')
+              .style('vertical-align', 'middle');
             
-          tabulate('#homeTeamRec', recTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
           tabulate('#awayTeamRec', recTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
+          tabulate('#homeTeamRec', recTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
         } else {
-          d3.select('#rec')
+          if (weekSelection == 'Week') {
+            d3.select('#rec')
               .style('background-color', 'white')
-              .append('text').text('Week ' + weekSelection + ' Receiving');
-          
-          tabulate('rec', recTbl, ['NAME', 'TEAM', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
+              .append('text')
+                .text('Season Receiving')
+                .style('font-weight', 'bold')
+                .style('vertical-align', 'middle');
+          } else {
+            d3.select('#rec')
+              .style('background-color', 'white')
+              .append('text')
+                .text('Week ' + weekSelection + ' Receiving')
+                .style('font-weight', 'bold')
+                .style('vertical-align', 'middle');
+          }
+
+          tabulate('#rec', recTbl, ['NAME', 'TEAM', 'TAR', 'REC', 'YDS', 'AVG', 'TD', 'YAC', 'LONG']);
         }
       }
       // d3.select('body').append('p');
     }
 
+///*
+    function refreshKick(){
+      kickTbl = [];
+      kickers = d3.nest()
+          .key(function(d) { return d.Kicker })
+          .entries(gameFiltered.filter(function(d){ return (d.PlayType == 'Field Goal' || d.PlayType == 'Extra Point') && d.kicker !== '' && d.kicker !== 'NA' }));
+      var team, fga, fgm, xpa, xpm, long;
+
+      for (var index = 0; index < kickers.length; ++index){
+        team = 0; fga = 0; fgm = 0; xpa = 0; xpm = 0; long = 0;
+        for (var index1 = 0; index1 < kickers[index].values.length; ++index1){
+          //console.log(kickers[index].values[index1].YardsGained);
+          if (index1 == 0) { team = kickers[index].values[index1].posteam; }
+            if (kickers[index].values[index1].PlayType == 'Field Goal') {
+              fga++;
+              if (kickers[index].values[index1].FieldGoalResult == 'Good') {
+                fgm++;
+                if (parseInt(kickers[index].values[index1].FieldGoalDistance) > long) { long = parseInt(kickers[index].values[index1].FieldGoalDistance); }
+              }
+            }
+            if (kickers[index].values[index1].PlayType == 'Extra Point') {
+              fga++;
+              if (kickers[index].values[index1].FieldGoalResult == 'Made') {
+                fgm++;
+              }
+            }
+          }
+        
+        // Add entry to passTbl
+        kickTbl.push({
+          'NAME': kickers[index].key, // Passer
+          'TEAM': team,
+          // any variables summed in nested loop
+          'FGA': fga,
+          'FGM': fgm,
+          'XPA': xpa,
+          'XPM': xpm,
+          'LONG': long
+        });
+      }
+
+      objSort(kickTbl, 'TEAM', ['kick', true]);
+      d3.select('#kick').selectAll('text').remove();
+      d3.select('#kick').remove();
+      d3.select('body').append('div').attr('id', 'kick').attr('class', 'clearfix');
+      
+      if (kickTbl.length > 0 ) {
+
+        if (gameSelection != 'Games') {
+          d3.select('#homeTeamkick').remove();
+          d3.select('#awayTeamkick').remove();
+
+          d3.select('#kick')
+            .append('div')
+              .attr('id', 'awayTeamkick')
+              .style('float', 'left')
+              .style('width', 49.75+'%')
+              .style('overflow', 'auto')
+              .style('background-color', 'white')
+            .append('img')
+              .attr('class', 'picture')
+              .attr('src', awayTeamIcon.replace('h=100&w=100', 'h=20&w=20'))
+              .style('vertical-align', 'middle');
+          d3.select('#awayTeamkick')
+            .append('text')
+             .text(' ' + awayTeamFull + ' Kicking')
+              .style('font-weight', 'bold')
+              .style('vertical-align', 'middle');
+
+          d3.select('#kick')
+            .append('div')
+              .attr('id', 'homeTeamkick')
+              .style('float', 'right')
+              .style('width', 49.75+'%')
+              .style('overflow', 'auto')
+              .style('background-color', 'white')
+            .append('img')
+              .attr('class', 'picture')
+              .attr('src', homeTeamIcon.replace('h=100&w=100', 'h=20&w=20'))
+              .style('vertical-align', 'middle');
+          d3.select('#homeTeamkick')
+            .append('text')
+              .text(' ' + homeTeamFull + ' Kicking')
+              .style('font-weight', 'bold')
+              .style('vertical-align', 'middle');
+            
+          tabulate('#awayTeamkick', kickTbl.filter(function(d){ return d.TEAM == awayTeamSelect }), ['NAME', 'FGA', 'FGM', 'XPA', 'XPM', 'LONG']);
+          tabulate('#homeTeamkick', kickTbl.filter(function(d){ return d.TEAM == homeTeamSelect }), ['NAME', 'FGA', 'FGM', 'XPA', 'XPM', 'LONG']);
+        } else {
+          if (weekSelection == 'Week') {
+            d3.select('#kick')
+              .style('background-color', 'white')
+              .append('text')
+                .text('Season Kicking')
+                .style('font-weight', 'bold')
+                .style('vertical-align', 'middle');
+          } else {
+            d3.select('#kick')
+              .style('background-color', 'white')
+              .append('text')
+                .text('Week ' + weekSelection + ' Kicking')
+                .style('font-weight', 'bold')
+                .style('vertical-align', 'middle');
+          }
+
+          tabulate('#kick', kickTbl, ['NAME', 'TEAM', 'FGA', 'FGM', 'XPA', 'XPM', 'LONG']);
+        }
+      }
+      // d3.select('body').append('p');
+    }
+//*/
+
     var tabulate = function (divSelect,data,columns) {
-      var table = d3.select(divSelect).append('table')
+      var table = d3.select(divSelect).append('table').attr('id', 'tbl' + divSelect.replace('#',''));
       //var table = body.append('table')
 
       var headers = table.append('thead').append('tr')
@@ -749,6 +1022,7 @@
           .data(columns).enter()
         .append('th')
           .text(function (d) { return d })
+          .style('font-size', '12px')
         .on('click', function (d) {
           headers.attr('class', 'header');
             
@@ -764,25 +1038,20 @@
           });
 
       var rows = table.append('tbody').selectAll('tr')
-          .data(data)
-          .enter()
+        .data(data)
+        .enter()
         .append('tr')
 
       var cells = rows.selectAll('td')
-          .data(function(row) {
-            return columns.map(function (column) {
-              return { column: column, value: row[column] }
-            })
-          })
-          .enter()
+        .data(function(row) {
+          return columns.map(function (column) { return { column: column, value: row[column] } })
+        })
+        .enter()
         .append('td')
           // .text(function (d) { return d.value })
-        .attr('data-th', function (d) {
-		    	return d.name;
-		    })
-		    .text(function (d) {
-		    	return d.value;
-		    });
+          .attr('data-th', function (d) { return d.name; })
+          .text(function (d) { return d.value; })
+          .style('font-size', '12px');
         
       return table;
     }
@@ -832,6 +1101,14 @@
       });
     } //end of objSort() function
 
+    /* function hideDiv(divName) {
+      var x = document.getElementById(divName);
+      if (x.style.display === "none") {
+          x.style.display = "block";
+      } else {
+          x.style.display = "none";
+      }
+    } */
   })
 
   </script>
