@@ -109,7 +109,7 @@
   <script src='https://d3js.org/d3.v4.min.js'></script>
   <script>
   // Get all the data. Start working with filters
-  d3.csv('pbp16.csv', function(error, data){
+  d3.csv('testpbp.csv', function(error, data){
     data.forEach(function(d){
       // GameID = +d.GameID;
       // Drive = +d.Drive;
@@ -572,13 +572,17 @@
       refreshKick();
     }
 
+  
   function refreshGameOverview() {
     // delete all objects
     d3.select('#score').remove();
     d3.select('#playDesc').remove();
     d3.select('#gameDiv').selectAll('svg').remove();
     var sA, sH; // scoreAway, scoreHome
-
+	function addScoringPlay(pos, pointValue) {
+		if (pos == homeTeamSelect) { sH = sH + pointValue; }
+		else if (pos == awayTeamSelect) { sA = sA + pointValue; }
+	}
     if (gameSelection != 'Games'){
 
   //Create score object
@@ -588,14 +592,21 @@
         awayTeamSelect = gameFiltered[i].AwayTeam;
 
         if (gameFiltered[i].posteam == homeTeamSelect || gameFiltered[i].DefensiveTeam == awayTeamSelect) {
-          sH = gameFiltered[i].PosTeamScore;
-          sA = gameFiltered[i].DefTeamScore;
+          sH = parseInt(gameFiltered[i].PosTeamScore);
+          sA = parseInt(gameFiltered[i].DefTeamScore);
         } else if (gameFiltered[i].posteam == awayTeamSelect || gameFiltered[i].DefensiveTeam == homeTeamSelect) {
-          sA = gameFiltered[i].PosTeamScore;
-          sH = gameFiltered[i].DefTeamScore;
+          sA = parseInt(gameFiltered[i].PosTeamScore);
+          sH = parseInt(gameFiltered[i].DefTeamScore);
         }
 
-        if ( sA && sH ) { break; }
+        if (sA && sH) {
+		  if (parseInt(gameFiltered[i].pointValue) > 0) {
+			if (gameFiltered[i].scoringTeam == homeTeamSelect) { sH = sH + parseInt(gameFiltered[i].pointValue); }
+			else if (gameFiltered[i].scoringTeam == awayTeamSelect) { sA = sA + parseInt(gameFiltered[i].pointValue); }
+		  }
+		  break;
+			
+		}
       }
       // full team name
       for (var i = 0; i < Teams.length; i++){
@@ -667,7 +678,7 @@
       var x = d3.scaleLinear()
           .domain([3600, lastSecs])
           .range([0, width ]);
-      var y = d3.scaleLinear().rangeRound([0,250]);
+      var y = d3.scaleLinear().rangeRound([250,0]);
       var homeWP = d3.line()
           .x(function(d) { return x(parseInt(d.TimeSecs))})
           .y(function(d) { return y(parseFloat(d.Home_WP_post))})
@@ -738,8 +749,10 @@
             attempts++;
             completions = completions + parseInt(passers[index].values[index1].Reception);
             passYards = passYards + parseInt(passers[index].values[index1].YardsGained);
-            passTD = passTD + parseInt(passers[index].values[index1].Touchdown);
             interceptions = interceptions + parseInt(passers[index].values[index1].InterceptionThrown);
+			if (passers[index].values[index1].posteam == passers[index].values[index1].scoringTeam) {
+			  passTD = passTD + parseInt(passers[index].values[index1].Touchdown);
+			}
           }
           if (passers[index].values[index1].PlayType == 'Sack') {
             sacks = sacks + parseInt(passers[index].values[index1].Sack);
@@ -850,7 +863,9 @@
           if (rushers[index].values[index1].PlayType == 'Run') {
             attempts++;
             rushYards = rushYards + parseInt(rushers[index].values[index1].YardsGained);
-            rushTD = rushTD + parseInt(rushers[index].values[index1].Touchdown);
+			if (rushers[index].values[index1].posteam == rushers[index].values[index1].scoringTeam) {
+			  rushTD = rushTD + parseInt(rushers[index].values[index1].Touchdown);
+			}
             fumbles = fumbles + parseInt(rushers[index].values[index1].Fumble);
             if (rushers[index].values[index1].Fumble == '1' && rushers[index].values[index1].RecFumbTeam != rushers[index].values[index1].posteam) { fumblesLost++; }
             if (parseInt(rushers[index].values[index1].YardsGained) > long) { long = parseInt(rushers[index].values[index1].YardsGained); }
@@ -966,9 +981,11 @@
           targets++;
           receptions = receptions + parseInt(receivers[index].values[index1].Reception);
           recYards = recYards + parseInt(receivers[index].values[index1].YardsGained);
-          recTD = recTD + parseInt(receivers[index].values[index1].Touchdown);
           yac = yac + parseInt(receivers[index].values[index1].YardsAfterCatch);
-          if (parseInt(receivers[index].values[index1].YardsGained) > long) { long = parseInt(receivers[index].values[index1].YardsGained); }
+          if (receivers[index].values[index1].posteam == receivers[index].values[index1].scoringTeam) {
+			recTD = recTD + parseInt(receivers[index].values[index1].Touchdown);
+		  }
+		  if (parseInt(receivers[index].values[index1].YardsGained) > long) { long = parseInt(receivers[index].values[index1].YardsGained); }
         }
         if (receptions > 0){
           ypc = formatDec(recYards * 1.00 / receptions);
