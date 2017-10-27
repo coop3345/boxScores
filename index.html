@@ -669,13 +669,13 @@
 
       // objSort(wp, 'TEAM', ['YDS', true]);
       
-      gWP = gameSvg.append('g').attr('transform', 'translate(50, 20)'); 
+      gWP = gameSvg.append('g').attr('transform', 'translate(85, 20)'); 
       var lastSecs = gameFiltered[gameFiltered.length - 1].TimeSecs;
       var yHeight = 200;
 
       var x = d3.scaleLinear()
           .domain([3600, lastSecs])
-          .range([0, width / 2 ]);
+          .range([0, width]);
       var y = d3.scaleLinear().rangeRound([yHeight,0]);
       var homeWP = d3.line()
           .x(function(d) { return x(parseInt(d.TimeSecs))})
