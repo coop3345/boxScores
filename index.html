@@ -6,29 +6,29 @@
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   }
   table { 
-		width: 100%; 
-		border-collapse: collapse; 
-	}
-	/* Zebra striping */
-	tr:nth-of-type(even) { 
-		background: rgb(250, 250, 250); 
-	}
-	th { 
-		background: #fff; 
-		color: black; 
-		font-weight: bold; 
-		cursor: s-resize;
-		background-repeat: no-repeat;
+    width: 100%; 
+    border-collapse: collapse; 
+  }
+  /* Zebra striping */
+  tr:nth-of-type(even) { 
+    background: rgb(250, 250, 250); 
+  }
+  th { 
+    background: #fff; 
+    color: black; 
+    font-weight: bold; 
+    cursor: s-resize;
+    background-repeat: no-repeat;
         background-position: 3% center;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd
-	}
-	td, th { 
-		padding: 6px; 
-		text-align: right; 
-	}
+  }
+  td, th { 
+    padding: 6px; 
+    text-align: right; 
+  }
   td {
-		border-top: 1px solid #eee;
+    border-top: 1px solid #eee;
   }
 
   tr:hover {
@@ -38,8 +38,8 @@
   th:first-child,td:first-child {
     text-align: left;
   }
-	
-	th.des:after {
+
+  th.des:after {
     content: '\21E9';
   }
     
@@ -579,12 +579,8 @@
     d3.select('#playDesc').remove();
     d3.select('#gameDiv').selectAll('svg').remove();
     var sA, sH; // scoreAway, scoreHome
-	function addScoringPlay(pos, pointValue) {
-		if (pos == homeTeamSelect) { sH = sH + pointValue; }
-		else if (pos == awayTeamSelect) { sA = sA + pointValue; }
-	}
-    if (gameSelection != 'Games'){
 
+    if (gameSelection != 'Games'){
   //Create score object
   // Score
       for (var i = gameFiltered.length - 1; i >= 0; i--) {
@@ -599,14 +595,13 @@
           sH = parseInt(gameFiltered[i].DefTeamScore);
         }
 
-        if (sA && sH) {
-		  if (parseInt(gameFiltered[i].pointValue) > 0) {
-			if (gameFiltered[i].scoringTeam == homeTeamSelect) { sH = sH + parseInt(gameFiltered[i].pointValue); }
-			else if (gameFiltered[i].scoringTeam == awayTeamSelect) { sA = sA + parseInt(gameFiltered[i].pointValue); }
-		  }
-		  break;
-			
-		}
+        if (sA || sH) {
+          if (parseInt(gameFiltered[i].pointValue) > 0) {
+            if (gameFiltered[i].scoringTeam == homeTeamSelect) { sH = sH + parseInt(gameFiltered[i].pointValue); }
+            else if (gameFiltered[i].scoringTeam == awayTeamSelect) { sA = sA + parseInt(gameFiltered[i].pointValue); }
+          }
+          break;
+        }
       }
       // full team name
       for (var i = 0; i < Teams.length; i++){
@@ -750,9 +745,9 @@
             completions = completions + parseInt(passers[index].values[index1].Reception);
             passYards = passYards + parseInt(passers[index].values[index1].YardsGained);
             interceptions = interceptions + parseInt(passers[index].values[index1].InterceptionThrown);
-			if (passers[index].values[index1].posteam == passers[index].values[index1].scoringTeam) {
-			  passTD = passTD + parseInt(passers[index].values[index1].Touchdown);
-			}
+            if (passers[index].values[index1].posteam == passers[index].values[index1].scoringTeam) {
+              passTD = passTD + parseInt(passers[index].values[index1].Touchdown);
+            }
           }
           if (passers[index].values[index1].PlayType == 'Sack') {
             sacks = sacks + parseInt(passers[index].values[index1].Sack);
@@ -863,9 +858,9 @@
           if (rushers[index].values[index1].PlayType == 'Run') {
             attempts++;
             rushYards = rushYards + parseInt(rushers[index].values[index1].YardsGained);
-			if (rushers[index].values[index1].posteam == rushers[index].values[index1].scoringTeam) {
-			  rushTD = rushTD + parseInt(rushers[index].values[index1].Touchdown);
-			}
+            if (rushers[index].values[index1].posteam == rushers[index].values[index1].scoringTeam) {
+              rushTD = rushTD + parseInt(rushers[index].values[index1].Touchdown);
+            }
             fumbles = fumbles + parseInt(rushers[index].values[index1].Fumble);
             if (rushers[index].values[index1].Fumble == '1' && rushers[index].values[index1].RecFumbTeam != rushers[index].values[index1].posteam) { fumblesLost++; }
             if (parseInt(rushers[index].values[index1].YardsGained) > long) { long = parseInt(rushers[index].values[index1].YardsGained); }
@@ -983,9 +978,9 @@
           recYards = recYards + parseInt(receivers[index].values[index1].YardsGained);
           yac = yac + parseInt(receivers[index].values[index1].YardsAfterCatch);
           if (receivers[index].values[index1].posteam == receivers[index].values[index1].scoringTeam) {
-			recTD = recTD + parseInt(receivers[index].values[index1].Touchdown);
-		  }
-		  if (parseInt(receivers[index].values[index1].YardsGained) > long) { long = parseInt(receivers[index].values[index1].YardsGained); }
+            recTD = recTD + parseInt(receivers[index].values[index1].Touchdown);
+          }
+          if (parseInt(receivers[index].values[index1].YardsGained) > long) { long = parseInt(receivers[index].values[index1].YardsGained); }
         }
         if (receptions > 0){
           ypc = formatDec(recYards * 1.00 / receptions);
