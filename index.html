@@ -96,12 +96,16 @@
     stroke-width: 1.25px;
   }
 </style>
+
 <body>
-  <select id='week'></select>
-  <select id='game'></select>
+  <div id='dropdowns'>
+    <select id='week'></select>
+    <select id='game'></select>
+  </div>
   <div id='svg'></div>
-  <div id='gameSvg'></div>
+  <div id='gameDiv'></div>
   <!--svg width='1340' height='250'></svg -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src='https://d3js.org/d3.v4.min.js'></script>
   <script>
   // Get all the data. Start working with filters
@@ -170,13 +174,15 @@
     });
     //console.log(data);
     
-    var margin = {right: 50, left: 50, padLeft: 170, padTop: -19},
-        width = screen.width - margin.padLeft - 18,
+    var margin = {padLeft: 170, padTop: -19},
+        width = $(window).width() - margin.padLeft,
         height = 30,
-        sx = 5,
+        sx,
         sy = 9.5,
+        startSlider = true,
         gameFiltered,
         secondSelection,
+        myClock = 'Q4 00:00',
         weekSelection = 'Week',
         gameSelection = 'Games',
         games = ['Games'],
@@ -248,6 +254,7 @@
         }
       }
       gameFilter();
+      createSlider();
     };
 
     var weekSelect = d3.select('#week')
@@ -290,118 +297,226 @@
           .text(function (d) { return d; });
     };
     
+    
 
   // Slider
-    d3.select('#svg').style('height', height + margin.padTop + 8 + 'px');
-    var svg = d3.select('#svg')
-        .append('svg')
-        .attr('width', width)
-        .attr('height', height)
-        .attr('transform', 'translate(' + margin.padLeft  + ',' + margin.padTop + ')');
-
-    var x = d3.scaleLinear()
-        .domain([3600, -900])
-        .range([0, width - 100])
-        .clamp(true);
-
-    var slider = svg
-      .append('g')
-        .attr('class', 'slider')
-        .attr('transform', 'translate(85, ' + sy + ')');
-
-    slider.append('line')
-        .attr('class', 'track')
-        .attr('x1', x.range()[0])
-        .attr('x2', x.range()[1])
-      .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-        .attr('class', 'track-inset')
-      .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
-        .attr('class', 'track-overlay')
-        .call(d3.drag()
-            .on('start.interrupt', function() { slider.interrupt(); })
-            .on('start drag', function() { clock(x.invert(d3.event.x)); })
-            .on('end', function() {gameFilter();})
-          );
-
-    slider.insert('g', '.track-overlay')
-        .attr('class', 'ticks')
-        .attr('transform', 'translate(0,' + 20 + ')')
-      .selectAll('text')
-        .data(x.ticks(4))
-      .enter().append('text')
-        .attr('x', x)
-        .attr('text-anchor', 'middle')
-        .text(function(d) { var c = secsToClock(d);
-          return c;
-        });
-
-    var handle = slider.insert('ellipse', '.track-overlay')
-        .attr('class', 'handle')
-        .attr('rx', 13)
-        .attr('ry', 8);
     
-    var lace1 = slider.insert('line', '.track-toverlay')
-        .attr('y1', -2)
-        .attr('y2', 2)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'white');
+    function createSlider() {
+      if (gameSelection != 'Games') { sx = 14.5; margin.padLeft = 170}
+      else { margin.padLeft = 170; sx = 85; }
 
-    var lace2 = slider.insert('line', '.track-toverlay')
-        .attr('y1', -2)
-        .attr('y2', 2)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'white');
+      width = (document.body.clientWidth || document.documentElement.clientWidth || window.innerWidth) - margin.padLeft;
+      height = 30;
+      var translateLeft = margin.padLeft, translateTop = margin.padTop, tickNum = 4, textX = 1, textY = 15, textAlign = 'start';
 
-    var lace3 = slider.insert('line', '.track-toverlay')
-        .attr('y1', -2)
-        .attr('y2', 2)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'white');
+      if (width < 400) { 
+        d3.select('#dropdowns').attr('align', 'center');
+        translateLeft = 0;
+        translateTop = 0;
+        sx = 14.5;
+        width = document.body.clientWidth || document.documentElement.clientWidth || window.innerWidth;
+        if (gameSelection == 'Games') { height = 60; }
+        tickNum = 4;
+        textX = width / 2;
+        textY = 45;
+        textAlign = 'middle';
+        if (width < 250) { tickNum = 2; }
+      } else { d3.select('#dropdowns').attr('align', 'left'); }
 
-    var lace4 = slider.insert('line', '.track-toverlay')
-        .attr('y1', -2)
-        .attr('y2', 2)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'white');
-    
-    var lace5 = slider.insert('line', '.track-toverlay')
-        .attr('y1', -2)
-        .attr('y2', 2)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'white');
+      d3.select('#svg').style('height', height + translateTop + 8 + 'px');
+      d3.select('#svg').selectAll('svg').remove();
+      // d3.select('#svg').selectAll('g').remove();
+      // d3.select('#svg').selectAll('text').remove();
+      
+      // Define the div for the tooltip
 
-    var laceC = slider.insert('line', '.track-toverlay')
-        .attr('y1', 0)
-        .attr('y2', 0)
-        .attr('stroke-width', 1)
-        .attr('stroke', 'white');
+      var svg = d3.select('#svg')
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height)
+          .attr('transform', 'translate(' + translateLeft  + ',' + translateTop + ')');
 
-    slider.transition() // Gratuitous intro!
-        .duration(750)
-        .tween('clock', function() {
-          var i = d3.interpolate(0, 0);
-          return function(t) { clock(i(t)); };
-        });
+      var x = d3.scaleLinear()
+          .domain([3600, -900])
+          .range([0, width - sx - 13])
+          .clamp(true);
 
-    myText = svg.append('text')
-      .attr('x', sx)
-      .attr('y', 14);
-      // .attr('fill', 'white')
-      // .attr('stroke', 'white');
-    
+      var slider = svg
+        .append('g')
+          // .attr('class', 'slider')
+          .attr('transform', 'translate(' + sx + ', ' + sy + ')');
 
-    function clock(h) {
-      handle.attr('cx', x(h)).text(function(h) { return h; });
-      lace1.attr('x1', x(h) - 6).attr('x2', x(h) - 6);
-      lace2.attr('x1', x(h) - 3).attr('x2', x(h) - 3);
-      lace3.attr('x1', x(h)).attr('x2', x(h));
-      lace4.attr('x1', x(h) + 3).attr('x2', x(h) + 3);
-      lace5.attr('x1', x(h) + 6).attr('x2', x(h) + 6);
-      laceC.attr('x1', x(h) - 6).attr('x2', x(h) + 6);
+      slider.append('line')
+          .attr('class', 'track')
+          .attr('x1', x.range()[0])
+          .attr('x2', x.range()[1])
+        .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+          .attr('class', 'track-inset')
+        .select(function() { return this.parentNode.appendChild(this.cloneNode(true)); })
+          .attr('class', 'track-overlay')
+          .call(d3.drag()
+              .on('start.interrupt', function() { slider.interrupt(); })
+              .on('start drag', function() { clock(x.invert(d3.event.x)); })
+              .on('end', function() {gameFilter();})
+            );
 
-      secondSelection = h;
-      myText.text(secsToClock(formatInt(secondSelection))); 
+      slider.insert('g', '.track-overlay')
+          .attr('class', 'ticks')
+          .attr('transform', 'translate(0,' + 20 + ')')
+        .selectAll('text')
+          .data(x.ticks(tickNum))
+        .enter().append('text')
+          .attr('x', x)
+          .attr('text-anchor', 'middle')
+          .text(function(d) { var c = secsToClock(d);
+            return c;
+          });
+          
+      var handle = slider.insert('ellipse', '.track-overlay')
+          .attr('class', 'handle')
+          .attr('rx', 13)
+          .attr('ry', 8)
+          .attr('cx', function() { 
+            var cx
+            if (startSlider) { cx = 0; }
+            else { cx = x(secondSelection); }
+            return cx;
+          })
+      
+      var lace1 = slider.insert('line', '.track-toverlay')
+          .attr('y1', -2)
+          .attr('y2', 2)
+          .attr('stroke-width', 1)
+          .attr('stroke', 'white')
+          .attr('x1', function() { 
+            var x1
+            if (startSlider) { x1 = -6; }
+            else { x1 = x(secondSelection) - 6; }
+            return x1;
+          })
+          .attr('x2', function() { 
+            var x2
+            if (startSlider) { x2 = -6; }
+            else { x2 = x(secondSelection) - 6; }
+            return x2;
+          });
+
+      var lace2 = slider.insert('line', '.track-toverlay')
+          .attr('y1', -2)
+          .attr('y2', 2)
+          .attr('stroke-width', 1)
+          .attr('stroke', 'white')
+          .attr('x1', function() { 
+            var x1
+            if (startSlider) { x1 = -3; }
+            else { x1 = x(secondSelection) - 3; }
+            return x1;
+          })
+          .attr('x2', function() { 
+            var x2
+            if (startSlider) { x2 = -3; }
+            else { x2 = x(secondSelection) - 3; }
+            return x2;
+          });
+
+      var lace3 = slider.insert('line', '.track-toverlay')
+          .attr('y1', -2)
+          .attr('y2', 2)
+          .attr('stroke-width', 1)
+          .attr('stroke', 'white')
+          .attr('x1', function() { 
+            var x1
+            if (startSlider) { x1 = 0; }
+            else { x1 = x(secondSelection); }
+            return x1;
+          })
+          .attr('x2', function() { 
+            var x2
+            if (startSlider) { x2 = 0; }
+            else { x2 = x(secondSelection); }
+            return x2;
+          });;
+
+      var lace4 = slider.insert('line', '.track-toverlay')
+          .attr('y1', -2)
+          .attr('y2', 2)
+          .attr('stroke-width', 1)
+          .attr('stroke', 'white')
+          .attr('x1', function() { 
+            var x1
+            if (startSlider) { x1 = 3; }
+            else { x1 = x(secondSelection) + 3; }
+            return x1;
+          })
+          .attr('x2', function() { 
+            var x2
+            if (startSlider) { x2 = 3; }
+            else { x2 = x(secondSelection) + 3; }
+            return x2;
+          });
+      
+      var lace5 = slider.insert('line', '.track-toverlay')
+          .attr('y1', -2)
+          .attr('y2', 2)
+          .attr('stroke-width', 1)
+          .attr('stroke', 'white')
+          .attr('x1', function() { 
+            var x1
+            if (startSlider) { x1 = 6; }
+            else { x1 = x(secondSelection) + 6; }
+            return x1;
+          })
+          .attr('x2', function() { 
+            var x2
+            if (startSlider) { x2 = 6; }
+            else { x2 = x(secondSelection) + 6; }
+            return x2;
+          });
+
+      var laceC = slider.insert('line', '.track-toverlay')
+          .attr('y1', 0)
+          .attr('y2', 0)
+          .attr('stroke-width', 1)
+          .attr('stroke', 'white');
+      
+      var myText = svg.append('text')
+        .attr('x', textX)
+        .attr('y', textY)
+        .attr('text-anchor', textAlign);
+
+      if (gameSelection == 'Games') {
+        myText.text(myClock);
+      }
+
+      if (startSlider) {
+        slider.transition() // Gratuitous intro!
+            .duration(750)
+            .tween('clock', function() {
+              var i = d3.interpolate(0, 0);
+              return function(t) { clock(i(t)); };
+            });
+        startSlider = false;
+      }
+
+      function clock(h) {
+        handle.attr('cx', x(h)).text(function(h) { return h; });
+        lace1.attr('x1', x(h) - 6).attr('x2', x(h) - 6);
+        lace2.attr('x1', x(h) - 3).attr('x2', x(h) - 3);
+        lace3.attr('x1', x(h)).attr('x2', x(h));
+        lace4.attr('x1', x(h) + 3).attr('x2', x(h) + 3);
+        lace5.attr('x1', x(h) + 6).attr('x2', x(h) + 6);
+        laceC.attr('x1', x(h) - 6).attr('x2', x(h) + 6);
+
+        secondSelection = h;
+        myClock = secsToClock(formatInt(secondSelection));
+        if (gameSelection == 'Games') { myText.text(myClock); }
+      }
     }
+
+    createSlider();
+    // window.addEventListener("resize", );
+    window.addEventListener("resize", createSlider);
+
 
     function secsToClock(sr){
       var q, m, s;
@@ -459,28 +574,19 @@
 
   function refreshGameOverview() {
     // delete all objects
-    d3.select('#gameSvg').selectAll('svg').remove()
+    d3.select('#score').remove();
+    d3.select('#playDesc').remove();
+    d3.select('#gameDiv').selectAll('svg').remove();
     var sA, sH; // scoreAway, scoreHome
 
     if (gameSelection != 'Games'){
-      // Create SVG
-/*       var gameSvg = d3.select('#gameSvg')
-        .append('svg')
-        .attr('id', 'gameDisplay')
-        .attr('width', screen.width - 16)
-        .attr('height', 300);
-
-      var rect = gameSvg.append('rect')
-        .attr('width', '100%')
-        .attr('height', '100%')
-        .attr('fill', 'white'); */
 
   //Create score object
   // Score
       for (var i = gameFiltered.length - 1; i >= 0; i--) {
         homeTeamSelect = gameFiltered[i].HomeTeam;
         awayTeamSelect = gameFiltered[i].AwayTeam;
-        
+
         if (gameFiltered[i].posteam == homeTeamSelect || gameFiltered[i].DefensiveTeam == awayTeamSelect) {
           sH = gameFiltered[i].PosTeamScore;
           sA = gameFiltered[i].DefTeamScore;
@@ -489,7 +595,7 @@
           sH = gameFiltered[i].DefTeamScore;
         }
 
-        if ( sA > -1 && sH > -1) { break; }
+        if ( sA && sH ) { break; }
       }
       // full team name
       for (var i = 0; i < Teams.length; i++){
@@ -502,30 +608,72 @@
           awayTeamIcon = Teams[i].imageLink;
         }
       }
-/*       var img = document.createElement('IMG');
-      img.src = homeTeamIcon;
-      document.getElementById('gameSvg').append(img);
 
-      img.src = awayTeamIcon;
-      document.getElementById('gameSvg').append(img); */
+      myClock = gameFiltered[gameFiltered.length - 1].clock;
+      var gameDiv = d3.select('#gameDiv')
+        // .attr('id', 'score')
+        .attr("width", '100%')
+        .attr("height", 'auto')
+        .style('background-color', 'white')
+        .style('margin-bottom', '8px');
+        // .append('text').text('hello world!').attr('x', 20).attr('y',20);
       
-      // d3.select('#gameSvg').selectAll('svg').append('svg:image')
-      //   .attr('xlink:href', awayTeamIcon);
-      // d3.select('#gameSvg').selectAll('svg').append('svg:image')
-      //   .attr('xlink:href', homeTeamIcon);
+      var score = gameDiv.append('div').attr('id', 'score').attr('align', 'center');
+      score.append('img')
+        .attr('class', 'picture')
+        .attr('src', awayTeamIcon)
+        // .attr('x', 20).attr('y',20)
+        .style('vertical-align', 'middle');
+      score.append('text')
+        .text(' ' + sA + '  ')
+        .style('font-size', '40px')
+        .style('font-weight', 'bold')
+        .style('vertical-align', 'middle');
+      score.append('text').text(myClock)
+        .style('vertical-align', 'middle');
+      score.append('text')
+        .text('  ' + sH + ' ')
+        .style('font-size', '40px')
+        .style('font-weight', 'bold')
+        .style('vertical-align', 'middle');
+      score.append('img')
+        .attr('class', 'picture')
+        .attr('src', homeTeamIcon)
+        // .attr('x', 20).attr('y',20)
+        .style('vertical-align', 'middle')
+        .style('align', 'right');
+      
+      var lastPlay = gameFiltered[gameFiltered.length - 1].playdesc;
 
-      var lastPlay = gameFiltered[gameFiltered.length - 1].playdesc
-      // gameSvg.append('text').text(lastPlay).attr('y', 15);
+      var playDesc = gameDiv.append('div').attr('id', 'playDesc').attr('align', 'center');
+      playDesc.append('text').text(lastPlay).style('font-size','12px');
+
+      // Create SVG
+      var gameSvg = gameDiv.append('svg')
+        .attr('id', 'gameDisplay')
+        .attr('width', '100%')
+        .attr('height', 300);
+
+      // var rect = gameSvg.append('rect')
+      //   .attr('width', '100%')
+      //   .attr('height', '100%')
+      //   .attr('fill', 'white');
+
       // Win Probability
       wp = gameFiltered.filter(function(d){ return d.Home_WP_post || d.Away_WP_post});
-      
-      /* gWP = gameSvg.append('g').attr('transform', 'translate(20, 20)'); 
 
-      var x = d3.scaleLinear().rangeRound([screen.width - 32, 0]);
-      var y = d3.scaleLinear().rangeRound([0, 250]);
+      gWP = gameSvg.append('g').attr('transform', 'translate(50, 20)'); 
+      var lastSecs = gameFiltered[gameFiltered.length - 1].TimeSecs;
+      var x = d3.scaleLinear()
+          .domain([3600, lastSecs])
+          .range([0, width ]);
+      var y = d3.scaleLinear().rangeRound([0,250]);
       var homeWP = d3.line()
           .x(function(d) { return x(parseInt(d.TimeSecs))})
           .y(function(d) { return y(parseFloat(d.Home_WP_post))})
+      var awayWP = d3.line()
+          .x(function(d) { return x(parseInt(d.TimeSecs))})
+          .y(function(d) { return y(parseFloat(d.Away_WP_post))});
 
       gWP.append('g')
         .attr('transform', 'translate(0,' + 250 + ')')
@@ -551,10 +699,19 @@
         .attr('stroke-linecap', 'round')
         .attr('stroke-width', 1.5)
         .attr('d', homeWP);
-    */
+      
+      gWP.append('path')
+        .datum(wp)
+        .attr('fill', 'none')
+        .attr('stroke', 'orange')
+        .attr('stroke-linejoin', 'round')
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-width', 1.5)
+        .attr('d', awayWP);
+   
     }
     // console.log(gameFiltered);
-    // console.log(h + ': ' + sH + ' || ' + a + ': ' + sA);
+    // console.log(homeTeamSelect + ': ' + sH + ' || ' + awayTeamSelect + ': ' + sA);
   }
 
   // Team Comparisons
