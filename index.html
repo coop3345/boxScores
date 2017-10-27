@@ -309,19 +309,19 @@
       height = 30;
       var translateLeft = margin.padLeft, translateTop = margin.padTop, tickNum = 4, textX = 1, textY = 15, textAlign = 'start';
 
-      if (width < 400) { 
-        d3.select('#dropdowns').attr('align', 'center');
-        translateLeft = 0;
-        translateTop = 0;
-        sx = 14.5;
-        width = document.body.clientWidth || document.documentElement.clientWidth || window.innerWidth;
-        if (gameSelection == 'Games') { height = 60; }
-        tickNum = 4;
-        textX = width / 2;
-        textY = 45;
-        textAlign = 'middle';
-        if (width < 250) { tickNum = 2; }
-      } else { d3.select('#dropdowns').attr('align', 'left'); }
+      // if (width < 400) { 
+      //   d3.select('#dropdowns').attr('align', 'center');
+      //   translateLeft = 0;
+      //   translateTop = 0;
+      //   sx = 14.5;
+      //   width = document.body.clientWidth || document.documentElement.clientWidth || window.innerWidth;
+      //   if (gameSelection == 'Games') { height = 60; }
+      //   tickNum = 4;
+      //   textX = width / 2;
+      //   textY = 45;
+      //   textAlign = 'middle';
+      //   if (width < 250) { tickNum = 2; }
+      // } else { d3.select('#dropdowns').attr('align', 'left'); }
 
       d3.select('#svg').style('height', height + translateTop + 8 + 'px');
       d3.select('#svg').selectAll('svg').remove();
@@ -334,7 +334,8 @@
           .append('svg')
           .attr('width', width)
           .attr('height', height)
-          .attr('transform', 'translate(' + translateLeft  + ',' + translateTop + ')');
+          .attr('transform', 'translate(' + translateLeft  + ',' + translateTop + ')')
+          .style('margin-bottom', '8px');
 
       var x = d3.scaleLinear()
           .domain([3600, -900])
@@ -368,9 +369,7 @@
         .enter().append('text')
           .attr('x', x)
           .attr('text-anchor', 'middle')
-          .text(function(d) { var c = secsToClock(d);
-            return c;
-          });
+          .text(function(d) { return secsToClock(d); });
           
       var handle = slider.insert('ellipse', '.track-overlay')
           .attr('class', 'handle')
@@ -668,12 +667,16 @@
       // Win Probability
       wp = gameFiltered.filter(function(d){ return d.Home_WP_post || d.Away_WP_post});
 
+      // objSort(wp, 'TEAM', ['YDS', true]);
+      
       gWP = gameSvg.append('g').attr('transform', 'translate(50, 20)'); 
       var lastSecs = gameFiltered[gameFiltered.length - 1].TimeSecs;
+      var yHeight = 200;
+
       var x = d3.scaleLinear()
           .domain([3600, lastSecs])
-          .range([0, width ]);
-      var y = d3.scaleLinear().rangeRound([250,0]);
+          .range([0, width / 2 ]);
+      var y = d3.scaleLinear().rangeRound([yHeight,0]);
       var homeWP = d3.line()
           .x(function(d) { return x(parseInt(d.TimeSecs))})
           .y(function(d) { return y(parseFloat(d.Home_WP_post))})
@@ -681,11 +684,22 @@
           .x(function(d) { return x(parseInt(d.TimeSecs))})
           .y(function(d) { return y(parseFloat(d.Away_WP_post))});
 
+      var ticks = [3600]
+      if (2250 > parseInt(wp[wp.length-1].TimeSecs)) { ticks.push(2700); } else { ticks.push(parseInt(wp[wp.length-1].TimeSecs)); }
+      if (1350 > parseInt(wp[wp.length-1].TimeSecs)) { ticks.push(1800); } else { ticks.push(parseInt(wp[wp.length-1].TimeSecs)); }
+      if (450 > parseInt(wp[wp.length-1].TimeSecs)) { ticks.push(900); } else { ticks.push(parseInt(wp[wp.length-1].TimeSecs)); }
+      if (-150 > parseInt(wp[wp.length-1].TimeSecs) || parseInt(wp[wp.length-1].TimeSecs) < 15) { ticks.push(0); } 
+      else { ticks.push(parseInt(wp[wp.length-1].TimeSecs)); }
+
+
       gWP.append('g')
-        .attr('transform', 'translate(0,' + 250 + ')')
-          .call(d3.axisBottom(x))
+        .attr('transform', 'translate(0,' + yHeight + ')')
+          .call(d3.axisBottom(x)
+                .tickValues(ticks)
+                .tickFormat(function(d) { return secsToClock(d); }))
         .select('.domain')
           .remove();
+
 
       gWP.append('g')
           .call(d3.axisLeft(y))
