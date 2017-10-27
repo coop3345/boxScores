@@ -5,6 +5,8 @@
     background-color: rgb(225, 225, 225);
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   }
+  #week, #game, #svg {display: inline-block; *display: inline; vertical-align: top; font-size: 12px;}
+
   table { 
     width: 100%; 
     border-collapse: collapse; 
@@ -101,8 +103,8 @@
   <div id='dropdowns'>
     <select id='week'></select>
     <select id='game'></select>
+    <div id='svg'></div>
   </div>
-  <div id='svg'></div>
   <div id='gameDiv'></div>
   <!--svg width='1340' height='250'></svg -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -174,9 +176,9 @@
     });
     //console.log(data);
     
-    var margin = {padLeft: 170, padTop: -19},
+    var margin = {padLeft: 183, padTop: 0},
         width = $(window).width() - margin.padLeft,
-        height = 30,
+        height,
         sx,
         sy = 9.5,
         startSlider = true,
@@ -294,7 +296,9 @@
         .selectAll('option')
         .data(games).enter()
         .append('option')
-          .text(function (d) { return d; });
+          .text(function (d) { return d; })
+
+      createSlider();
     };
     
     
@@ -302,20 +306,20 @@
   // Slider
     
     function createSlider() {
-      if (gameSelection != 'Games') { sx = 14.5; margin.padLeft = 170}
-      else { margin.padLeft = 170; sx = 85; }
+      if (gameSelection != 'Games') { sx = 6.5; }
+      else { sx = 70; }
 
       width = (document.body.clientWidth || document.documentElement.clientWidth || window.innerWidth) - margin.padLeft;
       height = 30;
-      var translateLeft = margin.padLeft, translateTop = margin.padTop, tickNum = 4, textX = 1, textY = 15, textAlign = 'start';
+      var translateLeft = 0; translateTop = margin.padTop;
 
-      // if (width < 400) { 
+      // if (width < 500) { 
       //   d3.select('#dropdowns').attr('align', 'center');
       //   translateLeft = 0;
       //   translateTop = 0;
       //   sx = 14.5;
       //   width = document.body.clientWidth || document.documentElement.clientWidth || window.innerWidth;
-      //   if (gameSelection == 'Games') { height = 60; }
+      //   // if (gameSelection == 'Games') { height = 60; }
       //   tickNum = 4;
       //   textX = width / 2;
       //   textY = 45;
@@ -323,10 +327,7 @@
       //   if (width < 250) { tickNum = 2; }
       // } else { d3.select('#dropdowns').attr('align', 'left'); }
 
-      d3.select('#svg').style('height', height + translateTop + 8 + 'px');
       d3.select('#svg').selectAll('svg').remove();
-      // d3.select('#svg').selectAll('g').remove();
-      // d3.select('#svg').selectAll('text').remove();
       
       // Define the div for the tooltip
 
@@ -335,7 +336,6 @@
           .attr('width', width)
           .attr('height', height)
           .attr('transform', 'translate(' + translateLeft  + ',' + translateTop + ')')
-          .style('margin-bottom', '8px');
 
       var x = d3.scaleLinear()
           .domain([3600, -900])
@@ -365,7 +365,7 @@
           .attr('class', 'ticks')
           .attr('transform', 'translate(0,' + 20 + ')')
         .selectAll('text')
-          .data(x.ticks(tickNum))
+          .data(x.ticks(4))
         .enter().append('text')
           .attr('x', x)
           .attr('text-anchor', 'middle')
@@ -479,9 +479,9 @@
           .attr('stroke', 'white');
       
       var myText = svg.append('text')
-        .attr('x', textX)
-        .attr('y', textY)
-        .attr('text-anchor', textAlign);
+        .attr('x', 1)
+        .attr('y', 15)
+        .attr('text-anchor', 'start');
 
       if (gameSelection == 'Games') {
         myText.text(myClock);
