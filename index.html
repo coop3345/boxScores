@@ -7,7 +7,7 @@
   }
   
   #dropdowns { margin-block-end: 8px}
-  #week, #game, #svg {display: inline-block; *display: inline; vertical-align: top; font-size: 12px;}
+  #week, #game, #slider {display: inline-block; *display: inline; vertical-align: top; font-size: 12px;}
 
   table { 
     width: 100%; 
@@ -99,17 +99,43 @@
     stroke-opacity: 0.5;
     stroke-width: 1.25px;
   }
+  
+  div.tooltip {
+	line-height: 1;
+	height: 35px;
+	font-weight: bold;
+	padding: 12px;
+	background: rgba(0, 0, 0, 0.8);
+	color: #fff;
+	border-radius: 2px;
+  }
+  div.tooltip:after {
+	box-sizing: border-box;
+	font-size: 10px;
+	line-height: 1;
+	color: rgba(0, 0, 0, 0.8);
+	position: absolute;
+	text-align: center;
+  }
+
+	/* Style northward tooltips differently */
+  div.tooltip.n:after {
+	margin: -1px 0 0 0;
+	top: 100%;
+	left: 0;
+  }
+  
 </style>
 
 <body>
   <div id='dropdowns'>
     <select id='week'></select>
     <select id='game'></select>
-    <div id='svg'></div>
+    <div id='slider'></div>
   </div>
   <div id='gameDiv'></div>
   <!--svg width='1340' height='250'></svg -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
   <script src='https://d3js.org/d3.v4.min.js'></script>
   <script>
   // Get all the data. Start working with filters
@@ -230,7 +256,7 @@
       {'abbr': 'CHI', 'name': 'Chicago Bears', 'imageLink': 'Icons/CHI100.png'},
       {'abbr': 'NO', 'name': 'New Orleans Saints', 'imageLink': 'Icons/NO100.png'},
       {'abbr': 'CAR', 'name': 'Carolina Panthers', 'imageLink': 'Icons/CAR100.png'},
-      {'abbr': 'ATL', 'name': 'Atlanta Falcons', 'imageLink': 'Icons/ATl100.png'},
+      {'abbr': 'ATL', 'name': 'Atlanta Falcons', 'imageLink': 'Icons/ATL100.png'},
       {'abbr': 'TB', 'name': 'Tampa Bay Buccaneers', 'imageLink': 'Icons/TB100.png'},
       {'abbr': 'SEA', 'name': 'Seattle Seahawks', 'imageLink': 'Icons/SEA100.png'},
       {'abbr': 'ARI', 'name': 'Arizona Cardinals', 'imageLink': 'Icons/ARI100.png'},
@@ -250,13 +276,14 @@
       
     function gameChange() {
       gameSelection = d3.select('#game').property('value')
-      
+	  
       for (var i = 0; i < gameIDs.length; i++) {
         if (gameIDs[i].indexOf(gameSelection) === 0){
           gameSelection = gameIDs[i];
           break;
         }
       }
+	  
       gameFilter();
       createSlider();
     };
@@ -329,11 +356,11 @@
       //   if (width < 250) { tickNum = 2; }
       // } else { d3.select('#dropdowns').attr('align', 'left'); }
 
-      d3.select('#svg').selectAll('svg').remove();
+      d3.select('#slider').selectAll('svg').remove();
       
       // Define the div for the tooltip
 
-      var svg = d3.select('#svg')
+      var svg = d3.select('#slider')
           .append('svg')
           .attr('width', width)
           .attr('height', height)
@@ -515,8 +542,8 @@
     }
 
     createSlider();
-    // window.addEventListener("resize", );
-    window.addEventListener("resize", createSlider);
+    // window.addEventListener('resize', );
+    window.addEventListener('resize', createSlider);
 
 
     function secsToClock(sr){
@@ -579,6 +606,7 @@
     d3.select('#score').remove();
     d3.select('#playDesc').remove();
     d3.select('#gameDiv').selectAll('svg').remove();
+	d3.select('#tip').remove();
     var sA, sH; // scoreAway, scoreHome
 
     if (gameSelection != 'Games'){
@@ -619,8 +647,8 @@
       myClock = gameFiltered[gameFiltered.length - 1].clock;
       var gameDiv = d3.select('#gameDiv')
         // .attr('id', 'score')
-        .attr("width", '100%')
-        .attr("height", 'auto')
+        .attr('width', '100%')
+        .attr('height', 'auto')
         .style('background-color', 'white')
         .style('margin-bottom', '8px');
         // .append('text').text('hello world!').attr('x', 20).attr('y',20);
@@ -654,24 +682,42 @@
 
       var playDesc = gameDiv.append('div').attr('id', 'playDesc').attr('align', 'center');
       playDesc.append('text').text(lastPlay).style('font-size','12px');
-
+  
+	  // Tooltip divs
+	  var tip = gameDiv.append('div')
+		.attr('id', 'tip')
+		.attr('class', 'tooltip')		
+		.style('opacity', 0);
+	
+	  var awayTip = tip.append('div')
+		.style('float', 'left')
+		.style('width', 49.75+'%')
+		.style('overflow', 'auto');
+		
+	  var homeTip = tip.append('div')
+		.style('float', 'right')
+		.style('width', 49.75+'%')
+		.style('overflow', 'auto')
+		.style('text-align', 'right');
+		
+	  var playTip = tip.append('div')
+		.attr('id', 'playTip')
+		.style('text-align', 'center')
+		.style('font-size', '12px')
+		.style('font-weight', 'normal');
+		
       // Create SVG
       var gameSvg = gameDiv.append('svg')
         .attr('id', 'gameDisplay')
         .attr('width', '100%')
-        .attr('height', 300);
+        .attr('height', 250);
 
-      // var rect = gameSvg.append('rect')
-      //   .attr('width', '100%')
-      //   .attr('height', '100%')
-      //   .attr('fill', 'white');
 
       // Win Probability
       wp = gameFiltered.filter(function(d){ return d.Home_WP_post || d.Away_WP_post});
 
       // objSort(wp, 'TEAM', ['YDS', true]);
-      
-      gWP = gameSvg.append('g').attr('transform', 'translate(85, 20)'); 
+
       var lastSecs = gameFiltered[gameFiltered.length - 1].TimeSecs;
       var yHeight = 200;
 
@@ -693,17 +739,39 @@
       if (-150 > parseInt(wp[wp.length-1].TimeSecs) || parseInt(wp[wp.length-1].TimeSecs) < 15) { ticks.push(0); } 
       else { ticks.push(parseInt(wp[wp.length-1].TimeSecs)); }
 
+		var vertical = gameSvg.append("line")
+			.attr('x1', 0)
+			.attr('x2', 0)
+			.attr('y1', 5)
+			.attr('y2', yHeight + 10)
+			.attr('stroke', 'grey')
+			.attr('stroke-width', 2)
+			.style('stroke-dasharray', ('3, 3'))
+			.style('opacity', 0);
 
-      gWP.append('g')
-        .attr('transform', 'translate(0,' + yHeight + ')')
+		gameSvg
+			.on("mousemove", function(){  
+				mousex = d3.mouse(this);
+				mousex = mousex[0];
+				vertical.attr("x1", mousex + "px" );
+				vertical.attr("x2", mousex + "px" );
+				vertical.style('opacity', 1);
+				
+				if (mousex < 85 || mousex > width + 85) {
+					vertical.style('opacity', 0);
+				}
+			  })
+			  
+      gameSvg.append('g')
+        .attr('transform', 'translate(85,' + (yHeight + 20) + ')')
           .call(d3.axisBottom(x)
                 .tickValues(ticks)
                 .tickFormat(function(d) { return secsToClock(d); }))
         .select('.domain')
           .remove();
 
-
-      gWP.append('g')
+      gameSvg.append('g')
+		.attr('transform', 'translate(80,' + 10 + ')')
           .call(d3.axisLeft(y))
         .append('text')
           .attr('fill', '#000')
@@ -713,24 +781,60 @@
           .attr('text-anchor', 'end')
           .text('Win Prob');
 
-      gWP.append('path')
+      gameSvg.append('path')
         .datum(wp)
+		.attr('transform', 'translate(85,' + 10 + ')')
         .attr('fill', 'none')
         .attr('stroke', 'steelblue')
         .attr('stroke-linejoin', 'round')
         .attr('stroke-linecap', 'round')
         .attr('stroke-width', 1.5)
         .attr('d', homeWP);
-      
-      gWP.append('path')
+	  
+      gameSvg.append('path')
         .datum(wp)
+		.attr('transform', 'translate(85,' + 10 + ')')
         .attr('fill', 'none')
         .attr('stroke', 'orange')
         .attr('stroke-linejoin', 'round')
         .attr('stroke-linecap', 'round')
         .attr('stroke-width', 1.5)
         .attr('d', awayWP);
-   
+	
+	  gameSvg.selectAll('dot')	
+        .data(wp)		
+		.enter().append('line')
+			.attr('x1', function(d) { return x(parseInt(d.TimeSecs)) + 85})
+			.attr('x2', function(d) { return x(parseInt(d.TimeSecs)) + 85})
+			.attr('y1', 10)
+			.attr('y2', yHeight + 10)
+			.attr('stroke', 'black')
+			.attr('stroke-width', 10)
+			.style('opacity', 0)
+			.on('mouseover', function(d) {
+				var scoreHome, scoreAway;
+				
+				if (d.posteam == d.HomeTeam || d.DefensiveTeam == d.AwayTeam) {
+				  scoreHome = parseInt(d.PosTeamScore);
+				  scoreAway = parseInt(d.DefTeamScore);
+				} else if (d.posteam == d.AwayTeam || d.DefensiveTeam == d.HomeTeam) {
+				  scoreAway = parseInt(d.PosTeamScore);
+				  scoreHome = parseInt(d.DefTeamScore);
+				}
+				
+				tip.transition()
+					.duration(0)
+					.style('opacity', .9);
+				awayTip.html('Away Team: <span style="color:orange">' + d.AwayTeam + '</span> || Points: <span style="color:orange">' + scoreHome + '</span> || Win Probability: <span style="color:orange">' + (d.Away_WP_post * 100.00).toFixed(2)  + "%</span>");
+				homeTip.html('Home Team: <span style="color:steelblue">' + d.HomeTeam + '</span> || Points: <span style="color:steelblue">' + scoreHome + '</span> || Win Probability: <span style="color:steelblue">' + (d.Home_WP_post * 100.00).toFixed(2)  + "%</span>");
+				playTip.html('Last Play: ' + d.playdesc);
+//					tip.html('<div id="textbox"><p class="alignleft">Text on the left.</p><p class="alignright">Text on the right.</p></div>')
+			  })
+			.on('mouseout', function(d) {
+				tip.transition()
+					.duration(500)
+					.style('opacity', 0);
+			});
     }
     // console.log(gameFiltered);
     // console.log(homeTeamSelect + ': ' + sH + ' || ' + awayTeamSelect + ': ' + sA);
@@ -1288,10 +1392,10 @@
 
     /* function hideDiv(divName) {
       var x = document.getElementById(divName);
-      if (x.style.display === "none") {
-          x.style.display = "block";
+      if (x.style.display === 'none') {
+          x.style.display = 'block';
       } else {
-          x.style.display = "none";
+          x.style.display = 'none';
       }
     } */
   })
