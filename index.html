@@ -820,10 +820,12 @@
 				  scoreHome = parseInt(d.DefTeamScore);
 				}
 				
+				//console.log(d);
+				
 				tip.transition()
 					.duration(0)
 					.style('opacity', .9);
-				awayTip.html('Away Team: <span style="color:orange">' + d.AwayTeam + '</span> || Points: <span style="color:orange">' + scoreHome + '</span> || Win Probability: <span style="color:orange">' + (d.Away_WP_post * 100.00).toFixed(2)  + "%</span>");
+				awayTip.html('Away Team: <span style="color:orange">' + d.AwayTeam + '</span> || Points: <span style="color:orange">' + scoreAway + '</span> || Win Probability: <span style="color:orange">' + (d.Away_WP_post * 100.00).toFixed(2)  + "%</span>");
 				homeTip.html('Home Team: <span style="color:steelblue">' + d.HomeTeam + '</span> || Points: <span style="color:steelblue">' + scoreHome + '</span> || Win Probability: <span style="color:steelblue">' + (d.Home_WP_post * 100.00).toFixed(2)  + "%</span>");
 				playTip.html('Last Play: ' + d.playdesc);
 //					tip.html('<div id="textbox"><p class="alignleft">Text on the left.</p><p class="alignright">Text on the right.</p></div>')
