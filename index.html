@@ -810,7 +810,7 @@
 			.attr('stroke-width', 10)
 			.style('opacity', 0)
 			.on('mouseover', function(d) {
-				var scoreHome, scoreAway;
+				var scoreHome, scoreAway, playDown;
 				
 				if (d.posteam == d.HomeTeam || d.DefensiveTeam == d.AwayTeam) {
 				  scoreHome = parseInt(d.PosTeamScore);
@@ -820,14 +820,23 @@
 				  scoreHome = parseInt(d.DefTeamScore);
 				}
 				
+				if (d.down == 1){
+					playDown = d.down + 'st and ' + d.ydstogo + ' - ' + d.playdesc;
+				} else if (d.down == 2){
+					playDown = d.down + 'nd and ' + d.ydstogo + ' - ' + d.playdesc;
+				} else if (d.down == 3){
+					playDown = d.down + 'rd and ' + d.ydstogo + ' - ' + d.playdesc;
+				} else if (d.down == 4){
+					playDown = d.down + 'th and ' + d.ydstogo + ' - ' + d.playdesc;
+				}
 				//console.log(d);
 				
 				tip.transition()
 					.duration(0)
 					.style('opacity', .9);
-				awayTip.html('Away Team: <span style="color:orange">' + d.AwayTeam + '</span> || Points: <span style="color:orange">' + scoreAway + '</span> || Win Probability: <span style="color:orange">' + (d.Away_WP_post * 100.00).toFixed(2)  + "%</span>");
-				homeTip.html('Home Team: <span style="color:steelblue">' + d.HomeTeam + '</span> || Points: <span style="color:steelblue">' + scoreHome + '</span> || Win Probability: <span style="color:steelblue">' + (d.Home_WP_post * 100.00).toFixed(2)  + "%</span>");
-				playTip.html('Last Play: ' + d.playdesc);
+				if(scoreAway) {awayTip.html('Away Team: <span style="color:orange">' + d.AwayTeam + '</span> || Points: <span style="color:orange">' + scoreAway + '</span> || Win Probability: <span style="color:orange">' + (d.Away_WP_post * 100.00).toFixed(2)  + "%</span>");}
+				if(scoreHome) {homeTip.html('Home Team: <span style="color:steelblue">' + d.HomeTeam + '</span> || Points: <span style="color:steelblue">' + scoreHome + '</span> || Win Probability: <span style="color:steelblue">' + (d.Home_WP_post * 100.00).toFixed(2)  + "%</span>");}
+				if(d.down) {playTip.html('Last Play: ' + playDown);}
 //					tip.html('<div id="textbox"><p class="alignleft">Text on the left.</p><p class="alignright">Text on the right.</p></div>')
 			  })
 			.on('mouseout', function(d) {
